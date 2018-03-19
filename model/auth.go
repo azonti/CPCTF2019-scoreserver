@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-//AuthType Authoration Type of each Provider
+//AuthType Authorization Type of each Provider
 var AuthType = map[string]string{
 	"twitter": "OAuth1",
 }
