@@ -21,10 +21,10 @@ func Auth(c echo.Context) error {
 func AuthCallback(c echo.Context) error {
 	provider := c.Param("provider")
 
-	token, err := model.Login(provider, c.Request().URL.Query())
+	id, err := model.Auth(provider, c.Request().URL.Query())
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to login: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to authenticate: %v", err))
 	}
 
-	return c.String(http.StatusOK, token)
+	return c.String(http.StatusOK, id)
 }

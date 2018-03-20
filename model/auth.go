@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dghubble/oauth1"
 	"github.com/dghubble/oauth1/twitter"
+	"gopkg.in/resty.v1"
 	"net/url"
 	"os"
 )
@@ -33,15 +34,27 @@ func GetAuthURL(provider string) (*url.URL, error) {
 	return nil, fmt.Errorf("unknown provider")
 }
 
-//Login Get Data and Generate Token
-func Login(provider string, query url.Values) (string, error) {
+//Auth Authenticate and Get User ID
+func Auth(provider string, query url.Values) (string, error) {
 	switch authType[provider] {
 	case "OAuth1.0a":
-		accessToken, _, err := oauth1Config[provider].AccessToken(query.Get("oauth_token"), "", query.Get("oauth_verifier"))
+		requestToken, verifier := query.Get("oauth_token"), query.Get("oauth_verifier")
+		accessToken, accessTokenSecret, err := oauth1Config[provider].AccessToken(requestToken, "", verifier)
 		if err != nil {
 			return "", fmt.Errorf("failed to get access token: %v", err)
 		}
-		return accessToken, nil
+		httpClient := oauth1Config[provider].Client(oauth1.NoContext, oauth1.NewToken(accessToken, accessTokenSecret))
+		client := resty.New().SetTransport(httpClient.Transport)
+		switch provider {
+		case "twitter":
+			data := &struct {
+				IDStr string `json:"id_str"`
+			}{}
+			if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/account/verify_credentials.json"); err != nil {
+				return "", fmt.Errorf("failed to get user data: %v", err)
+			}
+			return data.IDStr, nil
+		}
 	}
 	return "", fmt.Errorf("unknown provider")
 }
