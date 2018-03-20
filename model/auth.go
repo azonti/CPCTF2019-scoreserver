@@ -50,7 +50,7 @@ func Auth(provider string, query url.Values) (string, error) {
 			data := &struct {
 				IDStr string `json:"id_str"`
 			}{}
-			if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/account/verify_credentials.json"); err != nil {
+			if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/account/verify_credentials.json"); err != nil || data.IDStr == "" {
 				return "", fmt.Errorf("failed to get user data: %v", err)
 			}
 			return data.IDStr, nil
