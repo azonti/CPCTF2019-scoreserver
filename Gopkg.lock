@@ -73,7 +73,11 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context"]
+  packages = [
+    "context",
+    "idna",
+    "publicsuffix"
+  ]
   revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
 
 [[projects]]
@@ -82,9 +86,36 @@
   packages = ["unix"]
   revision = "f6cff0780e542efa0c8e864dc8fa522808f6a598"
 
+[[projects]]
+  name = "golang.org/x/text"
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable"
+  ]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
+
+[[projects]]
+  name = "gopkg.in/resty.v1"
+  packages = ["."]
+  revision = "65798e030a35b911602b4d1d743d6f50ac93b665"
+  version = "v1.3"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3db67528ec9615cdd0d71bc1912e463a7c2d095e3206b30fdf034dc797c83e6b"
+  inputs-digest = "b5d32bfb7c4ba802f84bfa18374464bac5302a5903c035bd090ef54c0a9e0a62"
   solver-name = "gps-cdcl"
   solver-version = 1
