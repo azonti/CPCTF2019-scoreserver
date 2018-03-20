@@ -8,20 +8,17 @@ import (
 	"os"
 )
 
-//AuthType Authorization Type of each Provider
+//AuthType Authentication Type of each Provider
 var AuthType = map[string]string{
 	"twitter": "OAuth1",
 }
-var config1 = map[string]*oauth1.Config{}
-
-//InitAuth Initialize Authorization System
-func InitAuth() {
-	config1["twitter"] = &oauth1.Config{
+var config1 = map[string]*oauth1.Config{
+	"twitter": {
 		ConsumerKey:    os.Getenv("TWITTER_CONSUMER_KEY"),
 		ConsumerSecret: os.Getenv("TWITTER_CONSUMER_SECRET"),
-		CallbackURL:    "http://" + os.Getenv("HOSTNAME") + "/auth/twitter/callback",
+		CallbackURL:    os.Getenv("TWITTER_CALLBACK_URL"),
 		Endpoint:       twitter.AuthorizeEndpoint,
-	}
+	},
 }
 
 //GetAuthURL Get Authorization URL

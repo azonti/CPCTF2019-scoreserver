@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	model.InitAuth()
 	e := echo.New()
 	e.GET("/auth/:provider", router.Auth)
 	e.GET("/auth/:provider/callback", router.AuthCallback)
