@@ -11,6 +11,7 @@ import (
 func main() {
 	if err := model.InitDB(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to init DB: %v\n", err)
+		return
 	}
 	defer model.TermDB()
 	e := echo.New()
