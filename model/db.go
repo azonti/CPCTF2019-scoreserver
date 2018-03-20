@@ -14,7 +14,7 @@ func InitDB() error {
 	var err error
 	mgoSession, err = mgo.Dial(os.Getenv("MONGODB_URL"))
 	if err != nil {
-		return fmt.Errorf("failed to establish DB session")
+		return fmt.Errorf("failed to establish DB session: %v", err)
 	}
 	db = mgoSession.DB("")
 	return nil
