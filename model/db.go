@@ -7,9 +7,7 @@ import (
 )
 
 var session *mgo.Session
-
-//DB Database
-var DB *mgo.Database
+var db *mgo.Database
 
 //InitDB Initialize Database
 func InitDB() error {
@@ -18,7 +16,7 @@ func InitDB() error {
 	if err != nil {
 		return fmt.Errorf("failed to establish DB session")
 	}
-	DB = session.DB("")
+	db = session.DB("")
 	return nil
 }
 
