@@ -1,7 +1,7 @@
 SRCS=$(shell find . -type f -regextype posix-egrep ! -regex "^\./vendor/.*" -regex ".*\.go$$")
 PKGS=$(shell go list ./...)
 
-onic: $(SRCS)
+scoreserver: $(SRCS)
 	go build
 
 .PHONY: fmt
