@@ -23,6 +23,12 @@
   revision = "baa28fcb8e7d5dfab92026c0920cb6c9ae72faa2"
 
 [[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/labstack/echo"
   packages = ["."]
   revision = "b338075a0fc6e1a0683dbf03d09b4957a289e26f"
@@ -81,10 +87,21 @@
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "idna",
     "publicsuffix"
   ]
   revision = "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "clientcredentials",
+    "internal"
+  ]
+  revision = "fdc9e635145ae97e6c2cb777c48305600cf515cb"
 
 [[projects]]
   branch = "master"
@@ -114,6 +131,20 @@
   version = "v0.3.0"
 
 [[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
+  version = "v1.0.0"
+
+[[projects]]
   name = "gopkg.in/resty.v1"
   packages = ["."]
   revision = "65798e030a35b911602b4d1d743d6f50ac93b665"
@@ -122,6 +153,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "608a5a4364675716c6d4db5caf0a87bcfdd36ddc5cf536b8f827fee365d09d84"
+  inputs-digest = "c3b623053f62a6380cbf768e6fc76af39bed1b11c10f5b34326084b3c783210f"
   solver-name = "gps-cdcl"
   solver-version = 1
