@@ -8,6 +8,7 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 	"gopkg.in/resty.v1"
 	"os"
+	"time"
 )
 
 //User User
@@ -16,6 +17,7 @@ type User struct {
 	Provider          string        `bson:"provider"`
 	ID                string        `bson:"id"`
 	Token             string        `bson:"token"`
+	TokenExpires      time.Time     `bson:"token_expires"`
 	Name              string        `bson:"name"`
 	IconURL           string        `bson:"icon_url"`
 	TwitterScreenName string        `bson:"twitter_screen_name"`
@@ -61,11 +63,11 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 
 //SetToken Set a Token
 func (user *User) SetToken() error {
-	token := uuid.NewV4().String()
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"token": token}}); err != nil {
+	token, tokenExpires := uuid.NewV4().String(), time.Now().Add(24*time.Hour)
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"token": token, "token_expires": tokenExpires}}); err != nil {
 		return fmt.Errorf("failed to update the user record: %v", err)
 	}
-	user.Token = token
+	user.Token, user.TokenExpires = token, tokenExpires
 	return nil
 }
 

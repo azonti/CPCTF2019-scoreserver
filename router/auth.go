@@ -35,9 +35,10 @@ func AuthCallback(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to set a token: %v", err))
 	}
 	cookie := &http.Cookie{
-		Name:  "token",
-		Value: user.Token,
-		Path:  "/",
+		Name:    "token",
+		Value:   user.Token,
+		Expires: user.TokenExpires,
+		Path:    "/",
 	}
 	c.SetCookie(cookie)
 	return c.Redirect(http.StatusFound, os.Getenv("AUTH_CALLBACK_REDIRECT_URL"))
