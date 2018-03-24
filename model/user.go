@@ -58,7 +58,7 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 	}
 	user := &User{}
 	if err := db.C("user").Find(bson.M{"provider": provider, "id": id}).One(user); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get the user record: %v", err)
 	}
 	return user, nil
 }
