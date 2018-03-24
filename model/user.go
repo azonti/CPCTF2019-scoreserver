@@ -61,6 +61,15 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 	return user, nil
 }
 
+//GetUserByToken Get the User by the Token
+func GetUserByToken(token string) (*User, error) {
+	user := &User{}
+	if err := db.C("user").Find(bson.M{"token": token}).One(user); err != nil {
+		return nil, fmt.Errorf("failed to get the user record: %v", err)
+	}
+	return user, nil
+}
+
 //SetToken Set a Token
 func (user *User) SetToken() error {
 	token, tokenExpires := uuid.NewV4().String(), time.Now().Add(24*time.Hour)
