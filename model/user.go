@@ -33,31 +33,32 @@ var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 
 //GetUserByID Get the User by the Identity Provider's Name and the User ID
 func GetUserByID(provider string, id string, force bool) (*User, error) {
-	n, err := db.C("user").Find(bson.M{"provider": provider, "id": id}).Count()
-	if err != nil {
-		return nil, fmt.Errorf("failed to check the user record existence: %v", err)
-	}
-	var user *User
-	if n == 0 && force {
-		name, iconURL, twitterScreenName, err := getUserInfo(provider, id)
+	if force {
+		n, err := db.C("user").Find(bson.M{"provider": provider, "id": id}).Count()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get the user info: %v", err)
+			return nil, fmt.Errorf("failed to check the user record existence: %v", err)
 		}
-		user = &User{
-			Provider:          provider,
-			ID:                id,
-			Name:              name,
-			IconURL:           iconURL,
-			TwitterScreenName: twitterScreenName,
+		if n == 0 {
+			name, iconURL, twitterScreenName, err := getUserInfo(provider, id)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get the user info: %v", err)
+			}
+			user := &User{
+				Provider:          provider,
+				ID:                id,
+				Name:              name,
+				IconURL:           iconURL,
+				TwitterScreenName: twitterScreenName,
+			}
+			if err := db.C("user").Insert(user); err != nil {
+				return nil, fmt.Errorf("failed to insert the user record: %v", err)
+			}
+			return user, nil
 		}
-		if err := db.C("user").Insert(user); err != nil {
-			return nil, fmt.Errorf("failed to insert the user record: %v", err)
-		}
-	} else {
-		user = &User{}
-		if err := db.C("user").Find(bson.M{"provider": provider, "id": id}).One(user); err != nil {
-			return nil, err
-		}
+	}
+	user := &User{}
+	if err := db.C("user").Find(bson.M{"provider": provider, "id": id}).One(user); err != nil {
+		return nil, err
 	}
 	return user, nil
 }
