@@ -46,12 +46,10 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 		if err := db.C("user").Insert(user); err != nil {
 			return nil, fmt.Errorf("failed to insert the user record: %v", err)
 		}
-		go func() {
-			if err := user.initUserInfo(); err != nil {
-				fmt.Fprintf(os.Stderr, "failed to init the user (%s:%s) info: %v", user.Provider, user.ID, err)
-			}
-			return
-		}()
+		if err := user.initUserInfo(); err != nil {
+			user.Delete()
+			return nil, fmt.Errorf("failed to init the user info: %v", err)
+		}
 	} else {
 		user = &User{}
 		if err := db.C("user").Find(bson.M{"provider": provider, "id": id}).One(user); err != nil {
@@ -68,6 +66,11 @@ func GetUserByToken(token string) (*User, error) {
 		return nil, fmt.Errorf("failed to get the user record: %v", err)
 	}
 	return user, nil
+}
+
+//Delete Delete the User
+func (user *User) Delete() error {
+	return db.C("user").RemoveId(user.ObjectID)
 }
 
 //SetToken Set a Token
