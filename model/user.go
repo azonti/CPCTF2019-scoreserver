@@ -39,16 +39,19 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 	}
 	var user *User
 	if n == 0 && force {
+		name, iconURL, twitterScreenName, err := getUserInfo(provider, id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the user info: %v", err)
+		}
 		user = &User{
-			Provider: provider,
-			ID:       id,
+			Provider:          provider,
+			ID:                id,
+			Name:              name,
+			IconURL:           iconURL,
+			TwitterScreenName: twitterScreenName,
 		}
 		if err := db.C("user").Insert(user); err != nil {
 			return nil, fmt.Errorf("failed to insert the user record: %v", err)
-		}
-		if err := user.initUserInfo(); err != nil {
-			user.Delete()
-			return nil, fmt.Errorf("failed to init the user info: %v", err)
 		}
 	} else {
 		user = &User{}
@@ -83,26 +86,23 @@ func (user *User) SetToken() error {
 	return nil
 }
 
-func (user *User) initUserInfo() error {
-	httpClient := appOnlyAuthConfig[user.Provider].Client(oauth2.NoContext)
+func getUserInfo(provider string, id string) (string, string, string, error) {
+	httpClient := appOnlyAuthConfig[provider].Client(oauth2.NoContext)
 	client := resty.New().SetTransport(httpClient.Transport)
-	switch user.Provider {
+	switch provider {
 	case "twitter":
 		data := &struct {
 			Name            string `json:"name"`
 			ScreenName      string `json:"screen_name"`
 			ProfileImageURL string `json:"profile_image_url"`
 		}{}
-		if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/users/show.json?user_id=" + user.ID); err != nil {
-			return fmt.Errorf("failed to get the user info: %v", err)
+		if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/users/show.json?user_id=" + id); err != nil {
+			return "", "", "", err
 		}
 		if data.Name == "" || data.ScreenName == "" || data.ProfileImageURL == "" {
-			return fmt.Errorf("failed for unknown reason")
+			return "", "", "", fmt.Errorf("failed for unknown reason")
 		}
-		if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"name": data.Name, "icon_url": data.ProfileImageURL, "twitter_screen_name": data.ScreenName}}); err != nil {
-			return fmt.Errorf("failed to update the user record: %v", err)
-		}
-		user.Name, user.IconURL, user.TwitterScreenName = data.Name, data.ProfileImageURL, data.ScreenName
+		return data.Name, data.ProfileImageURL, data.ScreenName, nil
 	}
-	return nil
+	return "", "", "", fmt.Errorf("an unknown provider")
 }
