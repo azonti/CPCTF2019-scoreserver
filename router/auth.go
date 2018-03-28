@@ -15,6 +15,14 @@ func Auth(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get an authorization URL: %v", err))
 	}
+	if redirectURL := c.Request().Header.Get("Referer"); redirectURL != "" {
+		redirectURLCookie := &http.Cookie{
+			Name:  "redirect_url",
+			Value: redirectURL,
+			Path:  "/",
+		}
+		c.SetCookie(redirectURLCookie)
+	}
 	return c.Redirect(http.StatusFound, authoURL.String())
 }
 
@@ -34,12 +42,23 @@ func AuthCallback(c echo.Context) error {
 	if err := user.SetToken(); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to set a token: %v", err))
 	}
-	cookie := &http.Cookie{
+	redirectURL := os.Getenv("AUTH_CALLBACK_REDIRECT_URL")
+	if cookie, err := c.Cookie("redirect_url"); err == nil {
+		redirectURL = cookie.Value
+		redirectURLCookie := &http.Cookie{
+			Name:   "redirect_url",
+			Value:  "dummy",
+			MaxAge: -114514,
+			Path:   "/",
+		}
+		c.SetCookie(redirectURLCookie)
+	}
+	tokenCookie := &http.Cookie{
 		Name:    "token",
 		Value:   user.Token,
 		Expires: user.TokenExpires,
 		Path:    "/",
 	}
-	c.SetCookie(cookie)
-	return c.Redirect(http.StatusFound, os.Getenv("AUTH_CALLBACK_REDIRECT_URL"))
+	c.SetCookie(tokenCookie)
+	return c.Redirect(http.StatusFound, redirectURL)
 }
