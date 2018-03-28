@@ -6,15 +6,36 @@ import (
 	"net/http"
 )
 
+type userJSON struct {
+	ID                string `json:"id"`
+	Name              string `json:"name"`
+	IconURL           string `json:"icon_url"`
+	TwitterScreenName string `json:"twitter_screen_name"`
+	IsAuthor          bool   `json:"is_author"`
+}
+
+func newUserJSON(user *model.User) *userJSON {
+	json := &userJSON{
+		ID:                user.ID,
+		Name:              user.Name,
+		IconURL:           user.IconURL,
+		TwitterScreenName: user.TwitterScreenName,
+		IsAuthor:          user.IsAuthor,
+	}
+	return json
+}
+
 //DetermineMe Determine Who am I
 func DetermineMe(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("token")
 		if err != nil {
+			c.Set("me", model.Nobody)
 			return next(c)
 		}
 		me, err := model.GetUserByToken(cookie.Value)
 		if err != nil {
+			c.Set("me", model.Nobody)
 			return next(c)
 		}
 		c.Set("me", me)
@@ -26,8 +47,19 @@ func DetermineMe(next echo.HandlerFunc) echo.HandlerFunc {
 func EnsureIExist(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		me := c.Get("me").(*model.User)
-		if me == nil {
+		if me.ID == model.Nobody.ID {
 			return echo.NewHTTPError(http.StatusForbidden, "please log in")
+		}
+		return next(c)
+	}
+}
+
+//EnsureIAmAuthor Ensure I am an Author
+func EnsureIAmAuthor(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		me := c.Get("me").(*model.User)
+		if !me.IsAuthor {
+			return echo.NewHTTPError(http.StatusForbidden, "you are not an author")
 		}
 		return next(c)
 	}

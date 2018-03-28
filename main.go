@@ -15,7 +15,14 @@ func main() {
 	}
 	defer model.TermDB()
 	e := echo.New()
+	e.Use(router.DetermineMe)
 	e.GET("/auth/:provider", router.Auth)
 	e.GET("/auth/:provider/callback", router.AuthCallback)
+	e.GET("/challenges", router.GetChallenges)
+	e.GET("/challenges/:challengeID", router.GetChallenge)
+	e.POST("/challenges", router.PostChallenge, router.EnsureIAmAuthor)
+	e.PUT("/challenges/:challengeID", router.PutChallenge, router.EnsureIAmAuthor)
+	e.DELETE("/challenges/:challengeID", router.DeleteChallenge, router.EnsureIAmAuthor)
+	e.POST("/challenges/:challengeID", router.CheckAnswer, router.EnsureIExist)
 	e.Logger.Fatal(e.Start(":8080"))
 }

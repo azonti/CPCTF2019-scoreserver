@@ -21,6 +21,15 @@ type User struct {
 	Name              string        `bson:"name"`
 	IconURL           string        `bson:"icon_url"`
 	TwitterScreenName string        `bson:"twitter_screen_name"`
+	IsAuthor          bool          `bson:"is_author"`
+	OpenedHintIDs     []string      `bson:"opened_hint_ids"`
+}
+
+//Nobody a User Record which does Not Exist Actually
+var Nobody = &User{
+	ID:      "nobody:0",
+	Name:    "Nobody",
+	IconURL: os.Getenv("NOBODY_ICON_URL"),
 }
 
 var appOnlyAuthConfig = map[string]*clientcredentials.Config{
