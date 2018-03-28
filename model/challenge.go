@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/satori/go.uuid"
 	"strconv"
@@ -27,6 +28,9 @@ type Hint struct {
 	Penalty int    `bson:"penalty"`
 }
 
+//ErrChallengeNotFound an Error due to the Challenge Not Found
+var ErrChallengeNotFound = fmt.Errorf("the challenge not found")
+
 //GetChallenges Get All Challenge Records
 func GetChallenges() ([]*Challenge, error) {
 	var challenges []*Challenge
@@ -40,6 +44,9 @@ func GetChallenges() ([]*Challenge, error) {
 func GetChallengeByID(id string) (*Challenge, error) {
 	challenge := &Challenge{}
 	if err := db.C("challenge").Find(bson.M{"id": id}).One(challenge); err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, ErrChallengeNotFound
+		}
 		return nil, err
 	}
 	return challenge, nil

@@ -97,6 +97,9 @@ func GetChallenge(c echo.Context) error {
 	challengeID := c.Param("challengeID")
 	challenge, err := model.GetChallengeByID(challengeID)
 	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	json, err := newChallengeJSON(me, challenge)
@@ -131,14 +134,17 @@ func PostChallenge(c echo.Context) error {
 
 //PutChallenge the Method Handler of "PUT /challenges/:challengeID"
 func PutChallenge(c echo.Context) error {
-	req := &challengeJSON{}
-	if err := c.Bind(req); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
-	}
 	challengeID := c.Param("challengeID")
 	challenge, err := model.GetChallengeByID(challengeID)
 	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
+	}
+	req := &challengeJSON{}
+	if err := c.Bind(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 	captions, penalties := make([]string, len(req.Hints)), make([]int, len(req.Hints))
 	for _, json := range req.Hints {
@@ -158,6 +164,9 @@ func DeleteChallenge(c echo.Context) error {
 	challengeID := c.Param("challengeID")
 	challenge, err := model.GetChallengeByID(challengeID)
 	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
 	if err := challenge.Delete(); err != nil {
@@ -168,16 +177,19 @@ func DeleteChallenge(c echo.Context) error {
 
 //CheckAnswer the Method Handler of "POST /challenges/:challengeID"
 func CheckAnswer(c echo.Context) error {
+	challengeID := c.Param("challengeID")
+	challenge, err := model.GetChallengeByID(challengeID)
+	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
+	}
 	req := &struct {
 		Flag string `form:"flag"`
 	}{}
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
-	}
-	challengeID := c.Param("challengeID")
-	challenge, err := model.GetChallengeByID(challengeID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
 	if challenge.Flag != req.Flag {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the flag is wrong"))
