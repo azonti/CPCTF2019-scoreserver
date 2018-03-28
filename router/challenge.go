@@ -48,7 +48,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	}
 	json.Author = newUserJSON(author)
 	for i := 0; i < len(challenge.Hints); i++ {
-		if me.IsAuthor || contains(me.OpenedHintIDs, challenge.Hints[i].ID) {
+		if me.IsAuthor || contains(challenge.WhoSolvedIDs, me.ID) || contains(me.OpenedHintIDs, challenge.Hints[i].ID) {
 			json.Hints = append(json.Hints, &hintJSON{ID: challenge.Hints[i].ID, Caption: challenge.Hints[i].Caption, Penalty: challenge.Hints[i].Penalty})
 		}
 	}
