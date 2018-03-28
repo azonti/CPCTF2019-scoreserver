@@ -66,7 +66,7 @@ func GetUserByID(id string, force bool) (*User, error) {
 //GetUserByToken Get the User Record by their Token
 func GetUserByToken(token string) (*User, error) {
 	user := &User{}
-	if err := db.C("user").Find(bson.M{"token": token}).One(user); err != nil {
+	if err := db.C("user").Find(bson.M{"token": token, "token_expires": bson.M{"$gte": time.Now()}}).One(user); err != nil {
 		return nil, err
 	}
 	return user, nil
