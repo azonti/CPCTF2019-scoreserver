@@ -13,7 +13,7 @@ import (
 
 //User User
 type User struct {
-	ObjectID          bson.ObjectId `bson:"_id,omitempty"`
+	ObjectID          bson.ObjectId `bson:"_id"`
 	Provider          string        `bson:"provider"`
 	ID                string        `bson:"id"`
 	Token             string        `bson:"token"`
@@ -44,6 +44,7 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 				return nil, fmt.Errorf("failed to get the user info: %v", err)
 			}
 			user := &User{
+				ObjectID:          bson.NewObjectId(),
 				Provider:          provider,
 				ID:                id,
 				Name:              name,
