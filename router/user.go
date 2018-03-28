@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"git.trapti.tech/CPCTF2018/scoreserver/model"
 	"github.com/labstack/echo"
 	"net/http"
@@ -30,13 +31,19 @@ func DetermineMe(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		cookie, err := c.Cookie("token")
 		if err != nil {
-			c.Set("me", model.Nobody)
-			return next(c)
+			if err == http.ErrNoCookie {
+				c.Set("me", model.Nobody)
+				return next(c)
+			}
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the token cookie: %v", err))
 		}
 		me, err := model.GetUserByToken(cookie.Value)
 		if err != nil {
-			c.Set("me", model.Nobody)
-			return next(c)
+			if err == model.ErrUserNotFound {
+				c.Set("me", model.Nobody)
+				return next(c)
+			}
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get me: %v", err))
 		}
 		c.Set("me", me)
 		return next(c)

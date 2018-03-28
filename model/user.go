@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/satori/go.uuid"
 	"golang.org/x/oauth2"
@@ -40,6 +41,9 @@ var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 	},
 }
 
+//ErrUserNotFound an Error due to the User Not Found
+var ErrUserNotFound = fmt.Errorf("the user not found")
+
 //GetUserByID Get the User Record by their ID
 func GetUserByID(id string, force bool) (*User, error) {
 	if force {
@@ -67,6 +71,9 @@ func GetUserByID(id string, force bool) (*User, error) {
 	}
 	user := &User{}
 	if err := db.C("user").Find(bson.M{"id": id}).One(user); err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, ErrUserNotFound
+		}
 		return nil, err
 	}
 	return user, nil
@@ -76,6 +83,9 @@ func GetUserByID(id string, force bool) (*User, error) {
 func GetUserByToken(token string) (*User, error) {
 	user := &User{}
 	if err := db.C("user").Find(bson.M{"token": token, "token_expires": bson.M{"$gte": time.Now()}}).One(user); err != nil {
+		if err == mgo.ErrNotFound {
+			return nil, ErrUserNotFound
+		}
 		return nil, err
 	}
 	return user, nil
