@@ -8,13 +8,13 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 	"gopkg.in/resty.v1"
 	"os"
+	"strings"
 	"time"
 )
 
 //User an User Record
 type User struct {
 	ObjectID          bson.ObjectId `bson:"_id"`
-	Provider          string        `bson:"provider"`
 	ID                string        `bson:"id"`
 	Token             string        `bson:"token"`
 	TokenExpires      time.Time     `bson:"token_expires"`
@@ -32,20 +32,19 @@ var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 }
 
 //GetUserByID Get the User Record by their ID
-func GetUserByID(provider string, id string, force bool) (*User, error) {
+func GetUserByID(id string, force bool) (*User, error) {
 	if force {
-		n, err := db.C("user").Find(bson.M{"provider": provider, "id": id}).Count()
+		n, err := db.C("user").Find(bson.M{"id": id}).Count()
 		if err != nil {
 			return nil, fmt.Errorf("failed to check the user record existence: %v", err)
 		}
 		if n == 0 {
-			name, iconURL, twitterScreenName, err := getUserInfo(provider, id)
+			name, iconURL, twitterScreenName, err := getUserInfo(id)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get the user's information: %v", err)
 			}
 			user := &User{
 				ObjectID:          bson.NewObjectId(),
-				Provider:          provider,
 				ID:                id,
 				Name:              name,
 				IconURL:           iconURL,
@@ -58,7 +57,7 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 		}
 	}
 	user := &User{}
-	if err := db.C("user").Find(bson.M{"provider": provider, "id": id}).One(user); err != nil {
+	if err := db.C("user").Find(bson.M{"id": id}).One(user); err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -88,7 +87,9 @@ func (user *User) SetToken() error {
 	return nil
 }
 
-func getUserInfo(provider string, id string) (string, string, string, error) {
+func getUserInfo(id string) (string, string, string, error) {
+	idSplit := strings.Split(id, ":")
+	provider, rawID := idSplit[0], idSplit[1]
 	httpClient := appOnlyAuthConfig[provider].Client(oauth2.NoContext)
 	client := resty.New().SetTransport(httpClient.Transport)
 	switch provider {
@@ -98,7 +99,7 @@ func getUserInfo(provider string, id string) (string, string, string, error) {
 			ScreenName      string `json:"screen_name"`
 			ProfileImageURL string `json:"profile_image_url"`
 		}{}
-		if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/users/show.json?user_id=" + id); err != nil {
+		if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/users/show.json?user_id=" + rawID); err != nil {
 			return "", "", "", err
 		}
 		if data.Name == "" || data.ScreenName == "" || data.ProfileImageURL == "" {

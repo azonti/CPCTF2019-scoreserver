@@ -27,7 +27,7 @@ func AuthCallback(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the authenticated user's ID: %v", err))
 	}
-	user, err := model.GetUserByID(provider, id, true)
+	user, err := model.GetUserByID(id, true)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
 	}

@@ -56,7 +56,7 @@ func GetAuthedUserID(provider string, query *url.Values) (string, error) {
 			if data.IDStr == "" {
 				return "", fmt.Errorf("failed for unknown reason")
 			}
-			return data.IDStr, nil
+			return provider + ":" + data.IDStr, nil
 		}
 	}
 	return "", fmt.Errorf("an unknown provider")
