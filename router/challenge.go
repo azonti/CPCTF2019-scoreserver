@@ -65,17 +65,25 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	return json, nil
 }
 
+//EnsureContestStarted Ensure the Contest has Started
+func EnsureContestStarted(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		now, start := time.Now(), model.StartTime()
+		me := c.Get("me").(*model.User)
+		if start.After(now) && !me.IsAuthor {
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest does not start yet"))
+		}
+		return next(c)
+	}
+}
+
 //GetChallenges the Method Handler of "GET /challenges"
 func GetChallenges(c echo.Context) error {
-	now, start := time.Now(), model.StartTime()
-	me := c.Get("me").(*model.User)
-	if start.After(now) && !me.IsAuthor {
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest does not start yet"))
-	}
 	challenges, err := model.GetChallenges()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	me := c.Get("me").(*model.User)
 	jsons := make([]*challengeJSON, len(challenges))
 	for i := 0; i < len(challenges); i++ {
 		json, err := newChallengeJSON(me, challenges[i])
@@ -89,11 +97,6 @@ func GetChallenges(c echo.Context) error {
 
 //GetChallenge the Method Handler of "GET /challenges/:challengeID"
 func GetChallenge(c echo.Context) error {
-	now, start := time.Now(), model.StartTime()
-	me := c.Get("me").(*model.User)
-	if start.After(now) && !me.IsAuthor {
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest does not start yet"))
-	}
 	challengeID := c.Param("challengeID")
 	challenge, err := model.GetChallengeByID(challengeID)
 	if err != nil {
@@ -102,6 +105,7 @@ func GetChallenge(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	me := c.Get("me").(*model.User)
 	json, err := newChallengeJSON(me, challenge)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the challenge record: %v", err))
