@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type challengeJSON struct {
@@ -63,31 +62,6 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		json.WhoSolved = append(json.WhoSolved, newUserJSON(whoSolved))
 	}
 	return json, nil
-}
-
-//EnsureContestStarted Ensure the Contest has Started
-func EnsureContestStarted(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		now, start := time.Now(), model.StartTime()
-		me := c.Get("me").(*model.User)
-		if start.After(now) && !me.IsAuthor {
-			c.Response().Header().Set("Retry-After", start.UTC().Format(http.TimeFormat))
-			return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("the contest has not start yet"))
-		}
-		return next(c)
-	}
-}
-
-//EnsureContestNotFinished Ensure the Contest has not finished yet
-func EnsureContestNotFinished(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		now, finish := time.Now(), model.FinishTime()
-		me := c.Get("me").(*model.User)
-		if !finish.After(now) && !me.IsAuthor {
-			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
-		}
-		return next(c)
-	}
 }
 
 //GetChallenges the Method Handler of "GET /challenges"
