@@ -201,6 +201,10 @@ func CheckAnswer(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
+	me := c.Get("me").(*model.User)
+	if contains(challenge.WhoSolvedIDs, me.ID) {
+		return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("you already solved the challenge"))
+	}
 	req := &struct {
 		Flag string `form:"flag"`
 	}{}
@@ -210,7 +214,6 @@ func CheckAnswer(c echo.Context) error {
 	if challenge.Flag != req.Flag {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the flag is wrong"))
 	}
-	me := c.Get("me").(*model.User)
 	if err := challenge.AddWhoSolved(me); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to add you to the list of who solved: %v", err))
 	}
