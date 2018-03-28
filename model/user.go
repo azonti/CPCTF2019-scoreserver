@@ -116,5 +116,5 @@ func getUserInfo(id string) (string, string, string, error) {
 		}
 		return data.Name, data.ProfileImageURL, data.ScreenName, nil
 	}
-	return "", "", "", fmt.Errorf("an unknown provider")
+	return "", "", "", ErrUnknownProvider
 }

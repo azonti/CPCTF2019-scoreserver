@@ -21,6 +21,9 @@ var oauth1Config = map[string]*oauth1.Config{
 	},
 }
 
+//ErrUnknownProvider an Error due to an Unknown Provider
+var ErrUnknownProvider = fmt.Errorf("an unknown provider")
+
 //GetAuthoURL Get an Authorization URL
 func GetAuthoURL(provider string) (*url.URL, error) {
 	switch authType[provider] {
@@ -31,7 +34,7 @@ func GetAuthoURL(provider string) (*url.URL, error) {
 		}
 		return oauth1Config[provider].AuthorizationURL(requestToken)
 	}
-	return nil, fmt.Errorf("an unknown provider")
+	return nil, ErrUnknownProvider
 }
 
 //GetAuthedUserID Get the Authenticated User's ID
@@ -59,5 +62,5 @@ func GetAuthedUserID(provider string, query *url.Values) (string, error) {
 			return provider + ":" + data.IDStr, nil
 		}
 	}
-	return "", fmt.Errorf("an unknown provider")
+	return "", ErrUnknownProvider
 }

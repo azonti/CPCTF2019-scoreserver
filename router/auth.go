@@ -13,6 +13,9 @@ func Auth(c echo.Context) error {
 	provider := c.Param("provider")
 	authoURL, err := model.GetAuthoURL(provider)
 	if err != nil {
+		if err == model.ErrUnknownProvider {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get an authorization URL: %v", err))
 	}
 	if redirectURL := c.Request().Header.Get("Referer"); redirectURL != "" {
@@ -33,6 +36,9 @@ func AuthCallback(c echo.Context) error {
 	query := c.Request().URL.Query()
 	id, err := model.GetAuthedUserID(provider, &query)
 	if err != nil {
+		if err == model.ErrUnknownProvider {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the authenticated user's ID: %v", err))
 	}
 	user, err := model.GetUserByID(id, true)
