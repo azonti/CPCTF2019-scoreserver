@@ -23,6 +23,6 @@ func main() {
 	e.POST("/challenges", router.PostChallenge, router.EnsureIAmAuthor)
 	e.PUT("/challenges/:challengeID", router.PutChallenge, router.EnsureIAmAuthor)
 	e.DELETE("/challenges/:challengeID", router.DeleteChallenge, router.EnsureIAmAuthor)
-	e.POST("/challenges/:challengeID", router.CheckAnswer, router.EnsureIExist, router.EnsureContestStarted)
+	e.POST("/challenges/:challengeID", router.CheckAnswer, router.EnsureIExist, router.EnsureContestStarted, router.EnsureContestNotFinished)
 	e.Logger.Fatal(e.Start(":8080"))
 }

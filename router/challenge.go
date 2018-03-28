@@ -77,6 +77,18 @@ func EnsureContestStarted(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+//EnsureContestNotFinished Ensure the Contest has not finished yet
+func EnsureContestNotFinished(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		now, finish := time.Now(), model.FinishTime()
+		me := c.Get("me").(*model.User)
+		if !finish.After(now) && !me.IsAuthor {
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
+		}
+		return next(c)
+	}
+}
+
 //GetChallenges the Method Handler of "GET /challenges"
 func GetChallenges(c echo.Context) error {
 	challenges, err := model.GetChallenges()
