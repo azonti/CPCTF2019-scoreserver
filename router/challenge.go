@@ -71,7 +71,7 @@ func EnsureContestStarted(next echo.HandlerFunc) echo.HandlerFunc {
 		now, start := time.Now(), model.StartTime()
 		me := c.Get("me").(*model.User)
 		if start.After(now) && !me.IsAuthor {
-			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest does not start yet"))
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has not start yet"))
 		}
 		return next(c)
 	}
