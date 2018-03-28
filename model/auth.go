@@ -34,7 +34,7 @@ func GetAuthoURL(provider string) (*url.URL, error) {
 	return nil, fmt.Errorf("an unknown provider")
 }
 
-//GetAuthedUserID Get the Authenticated User ID
+//GetAuthedUserID Get the Authenticated User's ID
 func GetAuthedUserID(provider string, query *url.Values) (string, error) {
 	switch authType[provider] {
 	case "OAuth1.0a":
@@ -51,7 +51,7 @@ func GetAuthedUserID(provider string, query *url.Values) (string, error) {
 				IDStr string `json:"id_str"`
 			}{}
 			if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/account/verify_credentials.json"); err != nil {
-				return "", fmt.Errorf("failed to get the user info: %v", err)
+				return "", fmt.Errorf("failed to get the user's information: %v", err)
 			}
 			if data.IDStr == "" {
 				return "", fmt.Errorf("failed for unknown reason")

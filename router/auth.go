@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-//Auth Method Handler of "GET /auth/:provider"
+//Auth the Method Handler of "GET /auth/:provider"
 func Auth(c echo.Context) error {
 	provider := c.Param("provider")
 	authoURL, err := model.GetAuthoURL(provider)
@@ -18,18 +18,18 @@ func Auth(c echo.Context) error {
 	return c.Redirect(http.StatusFound, authoURL.String())
 }
 
-//AuthCallback Method Handler of "GET /auth/:provider/callback"
+//AuthCallback the Method Handler of "GET /auth/:provider/callback"
 func AuthCallback(c echo.Context) error {
 	provider := c.Param("provider")
 
 	query := c.Request().URL.Query()
 	id, err := model.GetAuthedUserID(provider, &query)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the authenticated user ID: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the authenticated user's ID: %v", err))
 	}
 	user, err := model.GetUserByID(provider, id, true)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
 	}
 	if err := user.SetToken(); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to set a token: %v", err))

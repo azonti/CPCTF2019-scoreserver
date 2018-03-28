@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-//User User
+//User an User Record
 type User struct {
 	ObjectID          bson.ObjectId `bson:"_id"`
 	Provider          string        `bson:"provider"`
@@ -31,7 +31,7 @@ var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 	},
 }
 
-//GetUserByID Get the User by the Identity Provider's Name and the User ID
+//GetUserByID Get the User Record by their ID
 func GetUserByID(provider string, id string, force bool) (*User, error) {
 	if force {
 		n, err := db.C("user").Find(bson.M{"provider": provider, "id": id}).Count()
@@ -41,7 +41,7 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 		if n == 0 {
 			name, iconURL, twitterScreenName, err := getUserInfo(provider, id)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get the user info: %v", err)
+				return nil, fmt.Errorf("failed to get the user's information: %v", err)
 			}
 			user := &User{
 				ObjectID:          bson.NewObjectId(),
@@ -52,28 +52,28 @@ func GetUserByID(provider string, id string, force bool) (*User, error) {
 				TwitterScreenName: twitterScreenName,
 			}
 			if err := db.C("user").Insert(user); err != nil {
-				return nil, fmt.Errorf("failed to insert the user record: %v", err)
+				return nil, fmt.Errorf("failed to insert a new user record: %v", err)
 			}
 			return user, nil
 		}
 	}
 	user := &User{}
 	if err := db.C("user").Find(bson.M{"provider": provider, "id": id}).One(user); err != nil {
-		return nil, fmt.Errorf("failed to get the user record: %v", err)
+		return nil, err
 	}
 	return user, nil
 }
 
-//GetUserByToken Get the User by the Token
+//GetUserByToken Get the User Record by their Token
 func GetUserByToken(token string) (*User, error) {
 	user := &User{}
 	if err := db.C("user").Find(bson.M{"token": token}).One(user); err != nil {
-		return nil, fmt.Errorf("failed to get the user record: %v", err)
+		return nil, err
 	}
 	return user, nil
 }
 
-//Delete Delete the User
+//Delete Delete the User Record
 func (user *User) Delete() error {
 	return db.C("user").RemoveId(user.ObjectID)
 }
