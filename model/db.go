@@ -6,22 +6,22 @@ import (
 	"os"
 )
 
-var mgoSession *mgo.Session
+var mgoSess *mgo.Session
 var db *mgo.Database
 
 //InitDB Initialize Database
 func InitDB() error {
-	var err error
-	mgoSession, err = mgo.Dial(os.Getenv("MONGODB_URL"))
+	sess, err := mgo.Dial(os.Getenv("MONGODB_URL"))
 	if err != nil {
 		return fmt.Errorf("failed to establish DB session: %v", err)
 	}
-	db = mgoSession.DB("")
+	mgoSess = sess
+	db = mgoSess.DB("")
 	return nil
 }
 
 //TermDB Terminate Database
 func TermDB() {
-	mgoSession.Close()
+	mgoSess.Close()
 	return
 }
