@@ -28,5 +28,9 @@ func main() {
 	e.PUT("/challenges/:challengeID", router.PutChallenge, router.EnsureIAmAuthor)
 	e.DELETE("/challenges/:challengeID", router.DeleteChallenge, router.EnsureIAmAuthor)
 	e.POST("/challenges/:challengeID", router.CheckAnswer, router.EnsureIExist, router.EnsureContestStarted, router.EnsureContestNotFinished)
+	e.GET("/questions", router.GetQuestions)
+	e.GET("/questions/:questionID", router.GetQuestion)
+	e.POST("/questions", router.PostQuestion, router.EnsureIExist, router.EnsureContestStarted, router.EnsureContestNotFinished)
+	e.PUT("/questions/:questionID", router.PutQuestion, router.EnsureIAmAuthor)
 	e.Logger.Fatal(e.Start(":8080"))
 }
