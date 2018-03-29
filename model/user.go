@@ -142,7 +142,7 @@ func (user *User) GetScore() (int, error) {
 }
 
 func getUserInfo(id string) (string, string, string, error) {
-	idSplit := strings.Split(id, ":")
+	idSplit := strings.Split(id, "_")
 	provider, rawID := idSplit[0], idSplit[1]
 	httpClient := appOnlyAuthConfig[provider].Client(oauth2.NoContext)
 	client := resty.New().SetTransport(httpClient.Transport)
