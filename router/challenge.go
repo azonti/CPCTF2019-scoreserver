@@ -36,16 +36,33 @@ func contains(slice []string, x string) bool {
 }
 
 func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSON, error) {
-	json := &challengeJSON{
-		ID:      challenge.ID,
-		Score:   challenge.Score,
-		Caption: challenge.Caption,
-	}
 	author, err := model.GetUserByID(challenge.AuthorID, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the author record: %v", err)
 	}
-	json.Author = newUserJSON(author)
+	authorJSON, err := newUserJSON(author)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the author record: %v", err)
+	}
+	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolvedIDs))
+	for i := 0; i < len(challenge.WhoSolvedIDs); i++ {
+		whoSolved, err := model.GetUserByID(challenge.WhoSolvedIDs[i], false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get who solved record: %v", err)
+		}
+		whoSolvedJSON, err := newUserJSON(whoSolved)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse who solved record: %v", err)
+		}
+		whoSolvedJSONs[i] = whoSolvedJSON
+	}
+	json := &challengeJSON{
+		ID:        challenge.ID,
+		Author:    authorJSON,
+		Score:     challenge.Score,
+		Caption:   challenge.Caption,
+		WhoSolved: whoSolvedJSONs,
+	}
 	for i := 0; i < len(challenge.Hints); i++ {
 		if me.IsAuthor || contains(challenge.WhoSolvedIDs, me.ID) || contains(me.OpenedHintIDs, challenge.Hints[i].ID) {
 			json.Hints = append(json.Hints, &hintJSON{ID: challenge.Hints[i].ID, Caption: challenge.Hints[i].Caption, Penalty: challenge.Hints[i].Penalty})
@@ -53,13 +70,6 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	}
 	if me.IsAuthor || contains(challenge.WhoSolvedIDs, me.ID) {
 		json.Flag, json.Answer = challenge.Flag, challenge.Answer
-	}
-	for _, whoSolvedID := range challenge.WhoSolvedIDs {
-		whoSolved, err := model.GetUserByID(whoSolvedID, false)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get who solved record: %v", err)
-		}
-		json.WhoSolved = append(json.WhoSolved, newUserJSON(whoSolved))
 	}
 	return json, nil
 }

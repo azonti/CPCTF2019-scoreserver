@@ -106,6 +106,41 @@ func (user *User) SetToken() error {
 	return nil
 }
 
+//GetScore Get the User's Score
+func (user *User) GetScore() (int, error) {
+	rawScorePipe, penaltyPipe := db.C("challenge").Pipe([]bson.M{
+		{"$project": bson.M{"score": 1, "who_solved_ids": 1}},
+		{"$match": bson.M{"who_solved_ids": user.ID}},
+		{"$group": bson.M{"_id": "score", "score": bson.M{"$sum": "$score"}}},
+	}), db.C("challenge").Pipe([]bson.M{
+		{"$project": bson.M{"hints": 1, "who_solved_ids": 1}},
+		{"$match": bson.M{"who_solved_ids": user.ID}},
+		{"$unwind": "$hints"},
+		{"$match": bson.M{"hints.id": bson.M{"$in": user.OpenedHintIDs}}},
+		{"$group": bson.M{"_id": "penalty", "penalty": bson.M{"$sum": "$hints.penalty"}}},
+	})
+	rawScore, penalty := &struct {
+		ObjectID string `bson:"_id"`
+		Score    int    `bson:"score"`
+	}{}, &struct {
+		ObjectID string `bson:"_id"`
+		Penalty  int    `bson:"penalty"`
+	}{}
+	if err := rawScorePipe.One(rawScore); err != nil {
+		if err != mgo.ErrNotFound {
+			return 0, fmt.Errorf("failed to get the user's raw score: %v", err)
+		}
+		rawScore.Score = 0
+	}
+	if err := penaltyPipe.One(penalty); err != nil {
+		if err != mgo.ErrNotFound {
+			return 0, fmt.Errorf("failed to get the user's penalty: %v", err)
+		}
+		penalty.Penalty = 0
+	}
+	return rawScore.Score - penalty.Penalty, nil
+}
+
 func getUserInfo(id string) (string, string, string, error) {
 	idSplit := strings.Split(id, ":")
 	provider, rawID := idSplit[0], idSplit[1]

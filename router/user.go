@@ -13,17 +13,23 @@ type userJSON struct {
 	IconURL           string `json:"icon_url"`
 	TwitterScreenName string `json:"twitter_screen_name"`
 	IsAuthor          bool   `json:"is_author"`
+	Score             int    `json:"score"`
 }
 
-func newUserJSON(user *model.User) *userJSON {
+func newUserJSON(user *model.User) (*userJSON, error) {
+	score, err := user.GetScore()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the user's score: %v", err)
+	}
 	json := &userJSON{
 		ID:                user.ID,
 		Name:              user.Name,
 		IconURL:           user.IconURL,
 		TwitterScreenName: user.TwitterScreenName,
 		IsAuthor:          user.IsAuthor,
+		Score:             score,
 	}
-	return json
+	return json, nil
 }
 
 //DetermineMe Determine Who am I
