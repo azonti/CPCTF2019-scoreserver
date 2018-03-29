@@ -14,6 +14,10 @@ func main() {
 		return
 	}
 	defer model.TermDB()
+	if err := model.InitWebShellCli(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to init Web Shell Client: %v\n", err)
+	}
+	defer model.TermWebShellCli()
 	e := echo.New()
 	e.Use(router.DetermineMe)
 	e.GET("/auth/:provider", router.Auth)
