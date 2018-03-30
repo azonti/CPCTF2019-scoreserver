@@ -12,6 +12,8 @@ import (
 type Challenge struct {
 	ObjectID     bson.ObjectId `bson:"_id"`
 	ID           string        `bson:"id"`
+	Genre        string        `bson:"genre"`
+	Name         string        `bson:"name"`
 	AuthorID     string        `bson:"author_id"`
 	Score        int           `bson:"score"`
 	Caption      string        `bson:"caption"`
@@ -53,7 +55,7 @@ func GetChallengeByID(id string) (*Challenge, error) {
 }
 
 //NewChallenge Make a New Challenge Record
-func NewChallenge(authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) (*Challenge, error) {
+func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) (*Challenge, error) {
 	id := uuid.NewV4().String()
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
@@ -66,6 +68,8 @@ func NewChallenge(authorID string, score int, caption string, captions []string,
 	challenge := &Challenge{
 		ObjectID: bson.NewObjectId(),
 		ID:       id,
+		Genre:    genre,
+		Name:     name,
 		AuthorID: authorID,
 		Score:    score,
 		Caption:  caption,
@@ -85,12 +89,12 @@ func (challenge *Challenge) Delete() error {
 }
 
 //Update Update the Challenge Record
-func (challenge *Challenge) Update(authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) error {
+func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) error {
 	hintBsons := make([]bson.M, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hintBsons[i] = bson.M{"id": challenge.ID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
 	}
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer}}); err != nil {
+	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"genre": genre, "name": name, "author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer}}); err != nil {
 		return err
 	}
 	hints := make([]*Hint, len(captions))
@@ -101,7 +105,7 @@ func (challenge *Challenge) Update(authorID string, score int, caption string, c
 			Penalty: penalties[i],
 		}
 	}
-	challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer = authorID, score, caption, hints, flag, answer
+	challenge.Genre, challenge.Name, challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer = genre, name, authorID, score, caption, hints, flag, answer
 	return nil
 }
 

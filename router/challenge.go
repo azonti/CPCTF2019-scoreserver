@@ -12,6 +12,8 @@ import (
 
 type challengeJSON struct {
 	ID        string      `json:"id"`
+	Genre     string      `json:"genre"`
+	Name      string      `json:"name"`
 	Author    *userJSON   `json:"author"`
 	Score     int         `json:"score"`
 	Caption   string      `json:"caption"`
@@ -70,6 +72,8 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
 	json := &challengeJSON{
 		ID:        challenge.ID,
+		Genre:     challenge.Genre,
+		Name:      challenge.Name,
 		Author:    authorJSON,
 		Score:     challenge.Score,
 		Caption:   challenge.Caption,
@@ -130,7 +134,7 @@ func PostChallenge(c echo.Context) error {
 		captions[i] = _hintJSON.Caption
 		penalties[i] = _hintJSON.Penalty
 	}
-	challenge, err := model.NewChallenge(req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer)
+	challenge, err := model.NewChallenge(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -161,7 +165,7 @@ func PutChallenge(c echo.Context) error {
 		captions[i] = _hintJSON.Caption
 		penalties[i] = _hintJSON.Penalty
 	}
-	if err := challenge.Update(req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer); err != nil {
+	if err := challenge.Update(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
