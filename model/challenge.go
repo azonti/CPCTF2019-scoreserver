@@ -54,22 +54,24 @@ func GetChallengeByID(id string) (*Challenge, error) {
 
 //NewChallenge Make a New Challenge Record
 func NewChallenge(authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) (*Challenge, error) {
-	challenge := &Challenge{
-		ObjectID: bson.NewObjectId(),
-		ID:       uuid.NewV4().String(),
-		AuthorID: authorID,
-		Score:    score,
-		Caption:  caption,
-		Hints:    make([]*Hint, len(captions)),
-		Flag:     flag,
-		Answer:   answer,
-	}
+	id := uuid.NewV4().String()
+	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
-		challenge.Hints[i] = &Hint{
-			ID:      challenge.ID + ":" + strconv.Itoa(i),
+		hints[i] = &Hint{
+			ID:      id + ":" + strconv.Itoa(i),
 			Caption: captions[i],
 			Penalty: penalties[i],
 		}
+	}
+	challenge := &Challenge{
+		ObjectID: bson.NewObjectId(),
+		ID:       id,
+		AuthorID: authorID,
+		Score:    score,
+		Caption:  caption,
+		Hints:    hints,
+		Flag:     flag,
+		Answer:   answer,
 	}
 	if err := db.C("challenge").Insert(challenge); err != nil {
 		return nil, fmt.Errorf("failed to insert a new challenge record: %v", err)
@@ -84,21 +86,22 @@ func (challenge *Challenge) Delete() error {
 
 //Update Update the Challenge Record
 func (challenge *Challenge) Update(authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) error {
-	hints := make([]bson.M, len(captions))
+	hintBsons := make([]bson.M, len(captions))
 	for i := 0; i < len(captions); i++ {
-		hints[i] = bson.M{"id": challenge.ID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
+		hintBsons[i] = bson.M{"id": challenge.ID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
 	}
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"author_id": authorID, "score": score, "caption": caption, "hints": hints, "flag": flag, "answer": answer}}); err != nil {
+	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer}}); err != nil {
 		return err
 	}
-	challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer = authorID, score, caption, make([]*Hint, len(captions)), flag, answer
+	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
-		challenge.Hints[i] = &Hint{
+		hints[i] = &Hint{
 			ID:      challenge.ID + ":" + strconv.Itoa(i),
 			Caption: captions[i],
 			Penalty: penalties[i],
 		}
 	}
+	challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer = authorID, score, caption, hints, flag, answer
 	return nil
 }
 

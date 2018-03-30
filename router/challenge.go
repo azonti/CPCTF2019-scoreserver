@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type challengeJSON struct {
@@ -44,6 +45,17 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse the author record: %v", err)
 	}
+	now, finish := time.Now(), model.FinishTime()
+	var hintJSONs []*hintJSON
+	for _, hint := range challenge.Hints {
+		if !finish.After(now) || contains(me.OpenedHintIDs, hint.ID) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor {
+			hintJSONs = append(hintJSONs, &hintJSON{
+				ID:      hint.ID,
+				Caption: hint.Caption,
+				Penalty: hint.Penalty,
+			})
+		}
+	}
 	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolvedIDs))
 	for i := 0; i < len(challenge.WhoSolvedIDs); i++ {
 		whoSolved, err := model.GetUserByID(challenge.WhoSolvedIDs[i], false)
@@ -56,20 +68,16 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		}
 		whoSolvedJSONs[i] = whoSolvedJSON
 	}
+	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
 	json := &challengeJSON{
 		ID:        challenge.ID,
 		Author:    authorJSON,
 		Score:     challenge.Score,
 		Caption:   challenge.Caption,
+		Hints:     hintJSONs,
+		Flag:      map[bool]string{true: challenge.Flag}[canISeeAnswer],
+		Answer:    map[bool]string{true: challenge.Answer}[canISeeAnswer],
 		WhoSolved: whoSolvedJSONs,
-	}
-	for i := 0; i < len(challenge.Hints); i++ {
-		if me.IsAuthor || contains(challenge.WhoSolvedIDs, me.ID) || contains(me.OpenedHintIDs, challenge.Hints[i].ID) {
-			json.Hints = append(json.Hints, &hintJSON{ID: challenge.Hints[i].ID, Caption: challenge.Hints[i].Caption, Penalty: challenge.Hints[i].Penalty})
-		}
-	}
-	if me.IsAuthor || contains(challenge.WhoSolvedIDs, me.ID) {
-		json.Flag, json.Answer = challenge.Flag, challenge.Answer
 	}
 	return json, nil
 }
@@ -117,11 +125,11 @@ func PostChallenge(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 	captions, penalties := make([]string, len(req.Hints)), make([]int, len(req.Hints))
-	for _, json := range req.Hints {
-		idSplit := strings.Split(json.ID, ":")
+	for _, _hintJSON := range req.Hints {
+		idSplit := strings.Split(_hintJSON.ID, ":")
 		i, _ := strconv.Atoi(idSplit[1])
-		captions[i] = json.Caption
-		penalties[i] = json.Penalty
+		captions[i] = _hintJSON.Caption
+		penalties[i] = _hintJSON.Penalty
 	}
 	challenge, err := model.NewChallenge(req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer)
 	if err != nil {
@@ -148,11 +156,11 @@ func PutChallenge(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 	captions, penalties := make([]string, len(req.Hints)), make([]int, len(req.Hints))
-	for _, json := range req.Hints {
-		idSplit := strings.Split(json.ID, ":")
+	for _, _hintJSON := range req.Hints {
+		idSplit := strings.Split(_hintJSON.ID, ":")
 		i, _ := strconv.Atoi(idSplit[1])
-		captions[i] = json.Caption
-		penalties[i] = json.Penalty
+		captions[i] = _hintJSON.Caption
+		penalties[i] = _hintJSON.Penalty
 	}
 	if err := challenge.Update(req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
