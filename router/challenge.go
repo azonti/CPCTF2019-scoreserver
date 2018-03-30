@@ -46,14 +46,13 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		return nil, fmt.Errorf("failed to parse the author record: %v", err)
 	}
 	now, finish := time.Now(), model.FinishTime()
-	var hintJSONs []*hintJSON
-	for _, hint := range challenge.Hints {
-		if !finish.After(now) || contains(me.OpenedHintIDs, hint.ID) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor {
-			hintJSONs = append(hintJSONs, &hintJSON{
-				ID:      hint.ID,
-				Caption: hint.Caption,
-				Penalty: hint.Penalty,
-			})
+	hintJSONs := make([]*hintJSON, len(challenge.Hints))
+	for i, hint := range challenge.Hints {
+		canISeeHint := !finish.After(now) || contains(me.OpenedHintIDs, hint.ID) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+		hintJSONs[i] = &hintJSON{
+			ID:      hint.ID,
+			Caption: map[bool]string{true: hint.Caption}[canISeeHint],
+			Penalty: map[bool]int{true: hint.Penalty}[canISeeHint],
 		}
 	}
 	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolvedIDs))
