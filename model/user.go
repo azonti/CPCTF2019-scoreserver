@@ -1,7 +1,9 @@
 package model
 
 import (
+	"context"
 	"fmt"
+	webshell "git.trapti.tech/CPCTF2018/webshell/rpc"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/satori/go.uuid"
@@ -24,6 +26,7 @@ type User struct {
 	TwitterScreenName string        `bson:"twitter_screen_name"`
 	IsAuthor          bool          `bson:"is_author"`
 	OpenedHintIDs     []string      `bson:"opened_hint_ids"`
+	WebShellPass      string        `bson:"web_shell_pass"`
 }
 
 //Nobody a User Record which does Not Exist Actually
@@ -56,12 +59,23 @@ func GetUserByID(id string, force bool) (*User, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to get the user's information: %v", err)
 			}
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			webShellRes, err := webShellCli.Create(ctx, &webshell.Request{
+				Id:          id,
+				ScreenName:  map[bool]string{true: twitterScreenName, false: id}[twitterScreenName != ""],
+				DisplayName: name,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to create the user's web shell container: %v", err)
+			}
 			user := &User{
 				ObjectID:          bson.NewObjectId(),
 				ID:                id,
 				Name:              name,
 				IconURL:           iconURL,
 				TwitterScreenName: twitterScreenName,
+				WebShellPass:      webShellRes.GetPassword(),
 			}
 			if err := db.C("user").Insert(user); err != nil {
 				return nil, fmt.Errorf("failed to insert a new user record: %v", err)

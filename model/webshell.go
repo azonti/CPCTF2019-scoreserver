@@ -8,7 +8,7 @@ import (
 )
 
 var webShellConn *grpc.ClientConn
-var webShellCli *webshell.WebShellClient
+var webShellCli webshell.WebShellClient
 
 //InitWebShellCli Initialize Web Shell Client
 func InitWebShellCli() error {
@@ -17,8 +17,7 @@ func InitWebShellCli() error {
 		return fmt.Errorf("failed to connect webshell grpc: %v", err)
 	}
 	webShellConn = conn
-	cli := webshell.NewWebShellClient(conn)
-	webShellCli = &cli
+	webShellCli = webshell.NewWebShellClient(conn)
 	return nil
 }
 

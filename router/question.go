@@ -15,12 +15,12 @@ type questionJSON struct {
 	Answer     string    `json:"answer"`
 }
 
-func newQuestionJSON(question *model.Question) (*questionJSON, error) {
+func newQuestionJSON(me *model.User, question *model.Question) (*questionJSON, error) {
 	questioner, err := model.GetUserByID(question.QuestionerID, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the questioner record: %v", err)
 	}
-	questionerJSON, err := newUserJSON(questioner)
+	questionerJSON, err := newUserJSON(me, questioner)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse the questioner record: %v", err)
 	}
@@ -30,7 +30,7 @@ func newQuestionJSON(question *model.Question) (*questionJSON, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to get the answerer record: %v", err)
 		}
-		_answererJSON, err := newUserJSON(answerer)
+		_answererJSON, err := newUserJSON(me, answerer)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse the answerer record: %v", err)
 		}
@@ -58,7 +58,7 @@ func GetQuestions(c echo.Context) error {
 		if questions[i].QuestionerID != me.ID && !me.IsAuthor {
 			continue
 		}
-		json, err := newQuestionJSON(questions[i])
+		json, err := newQuestionJSON(me, questions[i])
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the question record: %v", err))
 		}
@@ -81,7 +81,7 @@ func GetQuestion(c echo.Context) error {
 	if question.QuestionerID != me.ID && !me.IsAuthor {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you are not the questioner"))
 	}
-	json, err := newQuestionJSON(question)
+	json, err := newQuestionJSON(me, question)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to parse the question record: %v", err))
 	}
@@ -99,7 +99,7 @@ func PostQuestion(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	json, _ := newQuestionJSON(question)
+	json, _ := newQuestionJSON(me, question)
 	c.Response().Header().Set(echo.HeaderLocation, "/questions/"+question.ID)
 	return c.JSON(http.StatusCreated, json)
 }

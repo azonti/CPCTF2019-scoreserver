@@ -43,7 +43,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the author record: %v", err)
 	}
-	authorJSON, err := newUserJSON(author)
+	authorJSON, err := newUserJSON(me, author)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse the author record: %v", err)
 	}
@@ -63,7 +63,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		if err != nil {
 			return nil, fmt.Errorf("failed to get who solved record: %v", err)
 		}
-		whoSolvedJSON, err := newUserJSON(whoSolved)
+		whoSolvedJSON, err := newUserJSON(me, whoSolved)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse who solved record: %v", err)
 		}

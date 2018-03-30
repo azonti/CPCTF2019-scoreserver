@@ -14,13 +14,15 @@ type userJSON struct {
 	TwitterScreenName string `json:"twitter_screen_name"`
 	IsAuthor          bool   `json:"is_author"`
 	Score             int    `json:"score"`
+	WebShellPass      string `json:"web_shell_pass"`
 }
 
-func newUserJSON(user *model.User) (*userJSON, error) {
+func newUserJSON(me *model.User, user *model.User) (*userJSON, error) {
 	score, err := user.GetScore()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the user's score: %v", err)
 	}
+	canISeePass := me.ID == user.ID || me.IsAuthor
 	json := &userJSON{
 		ID:                user.ID,
 		Name:              user.Name,
@@ -28,6 +30,7 @@ func newUserJSON(user *model.User) (*userJSON, error) {
 		TwitterScreenName: user.TwitterScreenName,
 		IsAuthor:          user.IsAuthor,
 		Score:             score,
+		WebShellPass:      map[bool]string{true: user.WebShellPass}[canISeePass],
 	}
 	return json, nil
 }
