@@ -52,17 +52,16 @@ func GetQuestions(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	jsons := make([]*questionJSON, len(questions))
+	var jsons []*questionJSON
 	me := c.Get("me").(*model.User)
-	for i := 0; i < len(questions); i++ {
-		if questions[i].QuestionerID != me.ID && !me.IsAuthor {
-			continue
+	for _, question := range questions {
+		if question.QuestionerID == model.Nobody.ID || question.QuestionerID == me.ID || me.IsAuthor {
+			json, err := newQuestionJSON(me, question)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the question record: %v", err))
+			}
+			jsons = append(jsons, json)
 		}
-		json, err := newQuestionJSON(me, questions[i])
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the question record: %v", err))
-		}
-		jsons[i] = json
 	}
 	return c.JSON(http.StatusOK, jsons)
 }
@@ -78,7 +77,7 @@ func GetQuestion(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	me := c.Get("me").(*model.User)
-	if question.QuestionerID != me.ID && !me.IsAuthor {
+	if question.QuestionerID != model.Nobody.ID && question.QuestionerID != me.ID && !me.IsAuthor {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you are not the questioner"))
 	}
 	json, err := newQuestionJSON(me, question)
