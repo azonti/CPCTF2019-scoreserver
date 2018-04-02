@@ -47,6 +47,15 @@ var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 //ErrUserNotFound an Error due to the User Not Found
 var ErrUserNotFound = fmt.Errorf("the user not found")
 
+//GetUsers Get All User Records
+func GetUsers() ([]*User, error) {
+	var users []*User
+	if err := db.C("user").Find(nil).All(&users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 //GetUserByID Get the User Record by their ID
 func GetUserByID(id string, force bool) (*User, error) {
 	if force {

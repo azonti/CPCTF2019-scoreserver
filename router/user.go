@@ -91,3 +91,39 @@ func EnsureIAmAuthor(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+//GetUsers the Method Handler of "GET /users"
+func GetUsers(c echo.Context) error {
+	users, err := model.GetUsers()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	me := c.Get("me").(*model.User)
+	jsons := make([]*userJSON, len(users))
+	for i := 0; i < len(users); i++ {
+		json, err := newUserJSON(me, users[i])
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the user record: %v", err))
+		}
+		jsons[i] = json
+	}
+	return c.JSON(http.StatusOK, jsons)
+}
+
+//GetUser the Method Handler of "GET /users/:userID"
+func GetUser(c echo.Context) error {
+	userID := c.Param("userID")
+	user, err := model.GetUserByID(userID, false)
+	if err != nil {
+		if err == model.ErrUserNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	me := c.Get("me").(*model.User)
+	json, err := newUserJSON(me, user)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the user record: %v", err))
+	}
+	return c.JSON(http.StatusOK, json)
+}

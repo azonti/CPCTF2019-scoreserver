@@ -33,5 +33,7 @@ func main() {
 	e.GET("/questions/:questionID", router.GetQuestion)
 	e.POST("/questions", router.PostQuestion, router.EnsureIExist, router.EnsureContestStarted, router.EnsureContestNotFinished)
 	e.PUT("/questions/:questionID", router.PutQuestion, router.EnsureIAmAuthor)
+	e.GET("/users", router.GetUsers)
+	e.GET("/users/:userID", router.GetUser)
 	e.Logger.Fatal(e.Start(":8080"))
 }
