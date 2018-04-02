@@ -70,6 +70,17 @@ func EnsureIExist(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+//EnsureINotExist Ensure I do Not Exist
+func EnsureINotExist(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		me := c.Get("me").(*model.User)
+		if me.ID != model.Nobody.ID {
+			return echo.NewHTTPError(http.StatusForbidden, "you have already logged in")
+		}
+		return next(c)
+	}
+}
+
 //EnsureIAmAuthor Ensure I am an Author
 func EnsureIAmAuthor(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
