@@ -22,6 +22,7 @@ func main() {
 	e.Use(router.DetermineMe)
 	e.GET("/auth/:provider", router.Auth)
 	e.GET("/auth/:provider/callback", router.AuthCallback)
+	e.GET("/logout", router.Logout, router.EnsureIExist)
 	e.GET("/challenges", router.GetChallenges, router.EnsureContestStarted)
 	e.GET("/challenges/:challengeID", router.GetChallenge, router.EnsureContestStarted)
 	e.POST("/challenges", router.PostChallenge, router.EnsureIAmAuthor)

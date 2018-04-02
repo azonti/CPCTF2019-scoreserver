@@ -68,3 +68,21 @@ func AuthCallback(c echo.Context) error {
 	c.SetCookie(tokenCookie)
 	return c.Redirect(http.StatusFound, redirectURL)
 }
+
+//Logout the Method Handler of "GET /logout"
+func Logout(c echo.Context) error {
+	me := c.Get("me").(*model.User)
+	me.RemoveToken()
+	tokenCookie := &http.Cookie{
+		Name:   "token",
+		Value:  "dummy",
+		MaxAge: -114514,
+		Path:   "/",
+	}
+	c.SetCookie(tokenCookie)
+	redirectURL := c.Request().Header.Get("Referer")
+	if redirectURL == "" {
+		redirectURL = os.Getenv("AUTH_CALLBACK_REDIRECT_URL")
+	}
+	return c.Redirect(http.StatusFound, redirectURL)
+}

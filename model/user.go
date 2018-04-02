@@ -120,6 +120,15 @@ func (user *User) SetToken() error {
 	return nil
 }
 
+//RemoveToken Remove the Token
+func (user *User) RemoveToken() error {
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"token": ""}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.Token = ""
+	return nil
+}
+
 //GetScore Get the User's Score
 func (user *User) GetScore() (int, error) {
 	rawScorePipe, penaltyPipe := db.C("challenge").Pipe([]bson.M{
