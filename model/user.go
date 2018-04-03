@@ -148,6 +148,18 @@ func (user *User) MakeMeOnsite() error {
 	return nil
 }
 
+//GetSolvedChallenges Get the Challenges which the User solved
+func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
+	pipe := db.C("challenge").Pipe([]bson.M{
+		{"$match": bson.M{"who_solved_ids": user.ID}},
+	})
+	var challenges []*Challenge
+	if err := pipe.All(&challenges); err != nil {
+		return nil, err
+	}
+	return challenges, nil
+}
+
 //GetScore Get the User's Score
 func (user *User) GetScore() (int, error) {
 	rawScorePipe, penaltyPipe := db.C("challenge").Pipe([]bson.M{

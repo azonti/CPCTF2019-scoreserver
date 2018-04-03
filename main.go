@@ -36,5 +36,6 @@ func main() {
 	e.GET("/users", router.GetUsers)
 	e.GET("/users/:userID", router.GetUser)
 	e.POST("/users/:userID", router.CheckOnsiteCode)
+	e.GET("/users/:userID/solved", router.GetSolvedChallenges)
 	e.Logger.Fatal(e.Start(":8080"))
 }
