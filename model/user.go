@@ -25,6 +25,7 @@ type User struct {
 	IconURL           string        `bson:"icon_url"`
 	TwitterScreenName string        `bson:"twitter_screen_name"`
 	IsAuthor          bool          `bson:"is_author"`
+	IsOnsite          bool          `bson:"is_onsite"`
 	OpenedHintIDs     []string      `bson:"opened_hint_ids"`
 	WebShellPass      string        `bson:"web_shell_pass"`
 }
@@ -135,6 +136,15 @@ func (user *User) RemoveToken() error {
 		return fmt.Errorf("failed to update the user record: %v", err)
 	}
 	user.Token = ""
+	return nil
+}
+
+//MakeMeOnsite Make the User Onsite
+func (user *User) MakeMeOnsite() error {
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_onsite": true}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.IsOnsite = true
 	return nil
 }
 
