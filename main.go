@@ -35,5 +35,6 @@ func main() {
 	e.PUT("/questions/:questionID", router.PutQuestion, router.EnsureIAmAuthor)
 	e.GET("/users", router.GetUsers)
 	e.GET("/users/:userID", router.GetUser)
+	e.POST("/users/:userID", router.CheckOnsiteCode)
 	e.Logger.Fatal(e.Start(":8080"))
 }
