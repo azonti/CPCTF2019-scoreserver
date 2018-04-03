@@ -139,6 +139,15 @@ func (user *User) RemoveToken() error {
 	return nil
 }
 
+//MakeMeAuthor Make the User a Author
+func (user *User) MakeMeAuthor() error {
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_author": true}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.IsAuthor = true
+	return nil
+}
+
 //MakeMeOnsite Make the User Onsite
 func (user *User) MakeMeOnsite() error {
 	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_onsite": true}}); err != nil {

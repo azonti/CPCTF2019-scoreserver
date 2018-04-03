@@ -129,8 +129,8 @@ func GetUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, json)
 }
 
-//CheckOnsiteCode the Method Handler of "POST /users/:userID"
-func CheckOnsiteCode(c echo.Context) error {
+//CheckCode the Method Handler of "POST /users/:userID"
+func CheckCode(c echo.Context) error {
 	userID := c.Param("userID")
 	user, err := model.GetUserByID(userID, false)
 	if err != nil {
@@ -145,15 +145,21 @@ func CheckOnsiteCode(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
-	if req.Code != os.Getenv("ONSITE_CODE") {
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the code is wrong"))
-	}
 	me := c.Get("me").(*model.User)
 	if me.ID != userID && !me.IsAuthor {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the user is not yuu"))
 	}
-	if err := user.MakeMeOnsite(); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	switch req.Code {
+	case os.Getenv("AUTHOR_CODE"):
+		if err := user.MakeMeAuthor(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	case os.Getenv("ONSITE_CODE"):
+		if err := user.MakeMeOnsite(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	default:
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the code is wrong"))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
