@@ -94,7 +94,10 @@ func PostQuestion(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 	me := c.Get("me").(*model.User)
-	question, err := model.NewQuestion(me.ID, req.Query)
+	if me.ID != req.Questioner.ID && !me.IsAuthor {
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the questioner is not you"))
+	}
+	question, err := model.NewQuestion(req.Questioner.ID, req.Query)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
