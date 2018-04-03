@@ -72,7 +72,9 @@ func AuthCallback(c echo.Context) error {
 //Logout the Method Handler of "GET /logout"
 func Logout(c echo.Context) error {
 	me := c.Get("me").(*model.User)
-	me.RemoveToken()
+	if err := me.RemoveToken(); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to remove the token: %v", err))
+	}
 	tokenCookie := &http.Cookie{
 		Name:   "token",
 		Value:  "dummy",
