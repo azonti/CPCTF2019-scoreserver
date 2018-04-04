@@ -13,6 +13,7 @@ type Question struct {
 	ID           string        `bson:"id"`
 	QuestionerID string        `bson:"questioner_id"`
 	AnswererID   string        `bson:"answerer_id"`
+	ChallengeID  string        `bson:"challenge_id"`
 	Query        string        `bson:"query"`
 	Answer       string        `bson:"answer"`
 }
@@ -42,11 +43,12 @@ func GetQuestionByID(id string) (*Question, error) {
 }
 
 //NewQuestion Make a New Question Record
-func NewQuestion(questionerID string, query string) (*Question, error) {
+func NewQuestion(questionerID string, challengeID string, query string) (*Question, error) {
 	question := &Question{
 		ObjectID:     bson.NewObjectId(),
 		ID:           uuid.NewV4().String(),
 		QuestionerID: questionerID,
+		ChallengeID:  challengeID,
 		Query:        query,
 	}
 	if err := db.C("question").Insert(question); err != nil {
@@ -56,6 +58,6 @@ func NewQuestion(questionerID string, query string) (*Question, error) {
 }
 
 //Update Update the Question Record
-func (question *Question) Update(questionerID string, answererID string, query string, answer string) error {
-	return db.C("question").UpdateId(question.ObjectID, bson.M{"$set": bson.M{"questioner_id": questionerID, "answerer_id": answererID, "query": query, "answer": answer}})
+func (question *Question) Update(questionerID string, answererID string, challengeID string, query string, answer string) error {
+	return db.C("question").UpdateId(question.ObjectID, bson.M{"$set": bson.M{"questioner_id": questionerID, "answerer_id": answererID, "challenge_id": challengeID, "query": query, "answer": answer}})
 }

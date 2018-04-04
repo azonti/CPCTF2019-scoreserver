@@ -8,11 +8,12 @@ import (
 )
 
 type questionJSON struct {
-	ID         string    `json:"id"`
-	Questioner *userJSON `json:"questioner"`
-	Answerer   *userJSON `json:"answerer"`
-	Query      string    `json:"query"`
-	Answer     string    `json:"answer"`
+	ID         string         `json:"id"`
+	Questioner *userJSON      `json:"questioner"`
+	Answerer   *userJSON      `json:"answerer"`
+	Challenge  *challengeJSON `json:"challenge"`
+	Query      string         `json:"query"`
+	Answer     string         `json:"answer"`
 }
 
 func newQuestionJSON(me *model.User, question *model.Question) (*questionJSON, error) {
@@ -36,10 +37,23 @@ func newQuestionJSON(me *model.User, question *model.Question) (*questionJSON, e
 		}
 		answererJSON = _answererJSON
 	}
+	var _challengeJSON *challengeJSON
+	if question.ChallengeID != "" {
+		challenge, err := model.GetChallengeByID(question.ChallengeID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the challenge record: %v", err)
+		}
+		_challengeJSONa, err := newChallengeJSON(me, challenge)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the challenge record: %v", err)
+		}
+		_challengeJSON = _challengeJSONa
+	}
 	json := &questionJSON{
 		ID:         question.ID,
 		Questioner: questionerJSON,
 		Answerer:   answererJSON,
+		Challenge:  _challengeJSON,
 		Query:      question.Query,
 		Answer:     question.Answer,
 	}
@@ -97,7 +111,7 @@ func PostQuestion(c echo.Context) error {
 	if me.ID != req.Questioner.ID && !me.IsAuthor {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the questioner is not you"))
 	}
-	question, err := model.NewQuestion(req.Questioner.ID, req.Query)
+	question, err := model.NewQuestion(req.Questioner.ID, req.Challenge.ID, req.Query)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -120,7 +134,7 @@ func PutQuestion(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
-	if err := question.Update(req.Questioner.ID, req.Answerer.ID, req.Query, req.Answer); err != nil {
+	if err := question.Update(req.Questioner.ID, req.Answerer.ID, req.Challenge.ID, req.Query, req.Answer); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
