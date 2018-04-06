@@ -115,6 +115,10 @@ func (challenge *Challenge) AddWhoSolved(user *User) error {
 	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": newWhoSolvedIDs}}); err != nil {
 		return fmt.Errorf("failed to update the challenge record: %v", err)
 	}
+	if err := user.setLastSolvedChallengeID(challenge.ID); err != nil {
+		db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": challenge.WhoSolvedIDs}})
+		return fmt.Errorf("failed to set the user's last solved challenge ID: %v", err)
+	}
 	challenge.WhoSolvedIDs = newWhoSolvedIDs
 	return nil
 }

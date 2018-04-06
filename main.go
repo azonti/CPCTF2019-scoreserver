@@ -37,5 +37,6 @@ func main() {
 	e.GET("/users/:userID", router.GetUser)
 	e.POST("/users/:userID", router.CheckCode)
 	e.GET("/users/:userID/solved", router.GetSolvedChallenges)
+	e.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
 	e.Logger.Fatal(e.Start(":8080"))
 }

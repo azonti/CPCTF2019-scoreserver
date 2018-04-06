@@ -17,17 +17,19 @@ import (
 
 //User an User Record
 type User struct {
-	ObjectID          bson.ObjectId `bson:"_id"`
-	ID                string        `bson:"id"`
-	Token             string        `bson:"token"`
-	TokenExpires      time.Time     `bson:"token_expires"`
-	Name              string        `bson:"name"`
-	IconURL           string        `bson:"icon_url"`
-	TwitterScreenName string        `bson:"twitter_screen_name"`
-	IsAuthor          bool          `bson:"is_author"`
-	IsOnsite          bool          `bson:"is_onsite"`
-	OpenedHintIDs     []string      `bson:"opened_hint_ids"`
-	WebShellPass      string        `bson:"web_shell_pass"`
+	ObjectID              bson.ObjectId `bson:"_id"`
+	ID                    string        `bson:"id"`
+	Token                 string        `bson:"token"`
+	TokenExpires          time.Time     `bson:"token_expires"`
+	Name                  string        `bson:"name"`
+	IconURL               string        `bson:"icon_url"`
+	TwitterScreenName     string        `bson:"twitter_screen_name"`
+	IsAuthor              bool          `bson:"is_author"`
+	IsOnsite              bool          `bson:"is_onsite"`
+	OpenedHintIDs         []string      `bson:"opened_hint_ids"`
+	WebShellPass          string        `bson:"web_shell_pass"`
+	LastSolvedChallengeID string        `bson:"last_solved_challenge_id"`
+	LastSolvedTime        time.Time     `bson:"last_solved_time"`
 }
 
 //Nobody a User Record which does Not Exist Actually
@@ -202,6 +204,15 @@ func (user *User) GetScore() (int, error) {
 		penalty.Penalty = 0
 	}
 	return rawScore.Score - penalty.Penalty, nil
+}
+
+func (user *User) setLastSolvedChallengeID(challengeID string) error {
+	now := time.Now()
+	if err := db.C("challenge").UpdateId(user.ID, bson.M{"$set": bson.M{"last_solved_challenge_id": challengeID, "last_solved_time": now}}); err != nil {
+		return fmt.Errorf("faield to update the user record: %v", err)
+	}
+	user.LastSolvedChallengeID, user.LastSolvedTime = challengeID, now
+	return nil
 }
 
 func getUserInfo(id string) (string, string, string, error) {
