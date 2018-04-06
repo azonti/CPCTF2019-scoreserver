@@ -66,7 +66,7 @@ func GetQuestions(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	var jsons []*questionJSON
+	jsons := make([]*questionJSON, 0)
 	me := c.Get("me").(*model.User)
 	for _, question := range questions {
 		if question.QuestionerID == model.Nobody.ID || question.QuestionerID == me.ID || me.IsAuthor {

@@ -147,7 +147,7 @@ func CheckCode(c echo.Context) error {
 	}
 	me := c.Get("me").(*model.User)
 	if me.ID != userID && !me.IsAuthor {
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the user is not yuu"))
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the user is not you"))
 	}
 	switch req.Code {
 	case os.Getenv("AUTHOR_CODE"):
