@@ -1,5 +1,8 @@
 <template>
-  <p>hello world</p>
+  <div>
+    <vue-headful title="Index | CPCTF2018" />
+    <p>hello world</p>
+  </div>
 </template>
 
 <script>
