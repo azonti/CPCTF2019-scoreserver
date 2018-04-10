@@ -48,12 +48,22 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     noInfo: true,
-    overlay: true
+    overlay: true,
+    proxy: {
+      [process.env.API_URL_PREFIX]: process.env.DEPLOY_URL
+    }
   },
   performance: {
     hints: false
   },
-  devtool: '#eval-source-map'
+  devtool: '#eval-source-map',
+  plugins: [
+    new webpack.DefinePlugin({
+      "process.env": {
+        API_URL_PREFIX: JSON.stringify(process.env.API_URL_PREFIX)
+      }
+    })
+  ]
 }
 
 if (process.env.NODE_ENV === 'production') {
