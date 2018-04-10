@@ -5,6 +5,7 @@ import (
 	"git.trapti.tech/CPCTF2018/scoreserver/model"
 	"github.com/labstack/echo"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -140,7 +141,7 @@ func PostChallenge(c echo.Context) error {
 	}
 	me := c.Get("me").(*model.User)
 	json, _ := newChallengeJSON(me, challenge)
-	c.Response().Header().Set(echo.HeaderLocation, "/challenges/"+challenge.ID)
+	c.Response().Header().Set(echo.HeaderLocation, os.Getenv("API_URL_PREFIX")+"/challenges/"+challenge.ID)
 	return c.JSON(http.StatusCreated, json)
 }
 

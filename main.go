@@ -19,7 +19,7 @@ func main() {
 	}
 	defer model.TermWebShellCli()
 	e := echo.New()
-	g := e.Group("/api/1.0")
+	g := e.Group(os.Getenv("API_URL_PREFIX"))
 	g.Use(router.DetermineMe)
 	g.GET("/auth/:provider", router.Auth, router.EnsureINotExist)
 	g.GET("/auth/:provider/callback", router.AuthCallback, router.EnsureINotExist)

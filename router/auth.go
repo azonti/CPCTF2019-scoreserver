@@ -5,7 +5,6 @@ import (
 	"git.trapti.tech/CPCTF2018/scoreserver/model"
 	"github.com/labstack/echo"
 	"net/http"
-	"os"
 )
 
 //Auth the Method Handler of "GET /auth/:provider"
@@ -48,7 +47,7 @@ func AuthCallback(c echo.Context) error {
 	if err := user.SetToken(); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to set a token: %v", err))
 	}
-	redirectURL := os.Getenv("AUTH_CALLBACK_REDIRECT_URL")
+	redirectURL := "/"
 	if cookie, err := c.Cookie("redirect_url"); err == nil {
 		redirectURL = cookie.Value
 		redirectURLCookie := &http.Cookie{
@@ -84,7 +83,7 @@ func Logout(c echo.Context) error {
 	c.SetCookie(tokenCookie)
 	redirectURL := c.Request().Header.Get("Referer")
 	if redirectURL == "" {
-		redirectURL = os.Getenv("AUTH_CALLBACK_REDIRECT_URL")
+		redirectURL = "/"
 	}
 	return c.Redirect(http.StatusFound, redirectURL)
 }

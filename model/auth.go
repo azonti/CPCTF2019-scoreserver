@@ -16,7 +16,7 @@ var oauth1Config = map[string]*oauth1.Config{
 	"twitter": {
 		ConsumerKey:    os.Getenv("TWITTER_CONSUMER_KEY"),
 		ConsumerSecret: os.Getenv("TWITTER_CONSUMER_SECRET"),
-		CallbackURL:    os.Getenv("TWITTER_CALLBACK_URL"),
+		CallbackURL:    os.Getenv("DEPROY_URL") + os.Getenv("API_URL_PREFIX") + "/auth/twitter/callback",
 		Endpoint:       twitter.AuthorizeEndpoint,
 	},
 }

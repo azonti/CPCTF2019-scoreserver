@@ -5,6 +5,7 @@ import (
 	"git.trapti.tech/CPCTF2018/scoreserver/model"
 	"github.com/labstack/echo"
 	"net/http"
+	"os"
 )
 
 type questionJSON struct {
@@ -116,7 +117,7 @@ func PostQuestion(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	json, _ := newQuestionJSON(me, question)
-	c.Response().Header().Set(echo.HeaderLocation, "/questions/"+question.ID)
+	c.Response().Header().Set(echo.HeaderLocation, os.Getenv("API_URL_PREFIX")+"/questions/"+question.ID)
 	return c.JSON(http.StatusCreated, json)
 }
 
