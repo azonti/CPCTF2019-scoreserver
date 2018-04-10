@@ -1,13 +1,12 @@
 <template>
   <div>
     <vue-headful title="Index | CPCTF2018" />
-    <p>hello world</p>
   </div>
 </template>
 
 <script>
 export default {
-  data () {
+  data() {
   }
 }
 </script>
