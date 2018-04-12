@@ -1,60 +1,39 @@
 <template>
-  <div id="app">
-    <img src="./assets/logo.png">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
+  <div id="app" class="container">
+    <ul class="nav nav-tabs">
+      <li :class="isActive('/challenges') ? 'active' : ''"><router-link :to="{name: 'challenges'}">Challenges</router-link></li>
+      <li :class="isActive('/challenges') ? 'active' : ''"><router-link :to="{name: 'challenges'}">Questions</router-link></li>
+      <li :class="isActive('/challenges') ? 'active' : ''"><router-link :to="{name: 'challenges'}">Ranking</router-link></li>
+      <li class="dropdown">
+        <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" v-on:click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
+        <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : 'none' }">
+          <li class="divider"></li>
+          <li :class="loading || me.id ? 'disabled' : ''"><a v-on:click="showDropdown = !showDropdown" href="#">Login with Twitter</a></li>
+          <li :class="loading || !me.id ? 'disabled' : ''"><a v-on:click="showDropdown = !showDropdown" href="#">Logout</a></li>
+        </ul>
+      </li>
     </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul>
+    <router-view>
+    </router-view>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app',
-  data () {
+  data() {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      loading: true,
+      showDropdown: false,
+      me: {}
+    }
+  },
+  methods: {
+    isActive(path) {
+      return this.$route.path === path
     }
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
 </style>

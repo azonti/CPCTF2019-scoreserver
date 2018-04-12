@@ -1,20 +1,48 @@
 <template>
   <div>
-    <vue-headful title="Challenges | CPCTF2018" />
-    <div v-for="challenge in challenges">
-      <p>{{ challenge.name }}</p>
+    <div v-if="!loading">
+      <vue-headful title="Challenges | CPCTF2018" />
+      <div v-for="challenges in genre2Challenges">
+        <h1>{{ challenges[0].genre }}</h1>
+        <div class="row">
+          <div v-for="challenge in challenges" class="col-md-3">
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                <h2 class="panel-title"><router-link :to="{name: 'challenge', params: {id: challenge.id}}">{{ challenge.name }}</router-link></h2>
+              </div>
+              <div class="panel-body">
+                <dt class="row">
+                  <dt class="col-xs-6">Author</dt>
+                  <dd class="col-xs-6"><img :src="challenge.author.icon_url" class="icon">{{ challenge.author.name }}</dd>
+                </dt>
+                <dt class="row">
+                  <dt class="col-xs-6">Score</dt>
+                  <dd class="col-xs-6">{{ challenge.score }}</dd>
+                </dt>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else>
+      <p>Loading ...</p>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import Vue from 'vue'
+import axios from 'axios'
+const api = axios.create({
+  withCredentials: true
+})
 
 export default {
   data() {
     return {
       loading: true,
-      challenges: []
+      genre2Challenges: {}
     }
   },
   created() {
@@ -22,9 +50,13 @@ export default {
   },
   methods: {
     fetchChallenges() {
-      axios.get(process.env.API_URL_PREFIX + "/challenges")
-      .then((res) => {
-        this.challenges = res.data
+      api.get(`${process.env.API_URL_PREFIX}/challenges`)
+      .then(res => res.data)
+      .then((data) => {
+        for (const challenge of data) {
+          Vue.set(this.genre2Challenges, challenge.genre, (this.genre2Challenges[challenge.genre] || []).concat(challenge))
+          this.loading = false
+        }
       })
     }
   }
@@ -32,30 +64,4 @@ export default {
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
 </style>
