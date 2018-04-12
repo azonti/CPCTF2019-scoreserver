@@ -129,6 +129,16 @@ func GetUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, json)
 }
 
+//GetMe the Method Handler of "GET /users/me"
+func GetMe(c echo.Context) error {
+	me := c.Get("me").(*model.User)
+	json, err := newUserJSON(me, me)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the user record: %v", err))
+	}
+	return c.JSON(http.StatusOK, json)
+}
+
 //CheckCode the Method Handler of "POST /users/:userID"
 func CheckCode(c echo.Context) error {
 	userID := c.Param("userID")
