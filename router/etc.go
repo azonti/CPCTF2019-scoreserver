@@ -26,7 +26,7 @@ func EnsureContestNotFinished(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		now, finish := time.Now(), model.FinishTime()
 		me := c.Get("me").(*model.User)
-		if !finish.After(now) && !me.IsAuthor {
+		if finish.After(now) && !me.IsAuthor {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
 		}
 		return next(c)

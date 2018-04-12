@@ -51,7 +51,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	now, finish := time.Now(), model.FinishTime()
 	hintJSONs := make([]*hintJSON, len(challenge.Hints))
 	for i, hint := range challenge.Hints {
-		canISeeHint := finish.After(now) || contains(me.OpenedHintIDs, hint.ID) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+		canISeeHint := !finish.After(now) || contains(me.OpenedHintIDs, hint.ID) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
 		hintJSONs[i] = &hintJSON{
 			ID:      hint.ID,
 			Caption: map[bool]string{true: hint.Caption}[canISeeHint],
@@ -70,7 +70,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		}
 		whoSolvedJSONs[i] = whoSolvedJSON
 	}
-	canISeeAnswer := finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
 	json := &challengeJSON{
 		ID:        challenge.ID,
 		Genre:     challenge.Genre,
