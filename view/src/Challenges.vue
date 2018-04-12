@@ -32,7 +32,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import axios from 'axios'
 const api = axios.create({
   withCredentials: true
@@ -54,7 +53,7 @@ export default {
       .then(res => res.data)
       .then((data) => {
         for (const challenge of data) {
-          Vue.set(this.genre2Challenges, challenge.genre, (this.genre2Challenges[challenge.genre] || []).concat(challenge))
+          this.$set(this.genre2Challenges, challenge.genre, (this.genre2Challenges[challenge.genre] || []).concat(challenge))
           this.loading = false
         }
       })

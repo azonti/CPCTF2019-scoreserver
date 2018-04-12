@@ -2,3 +2,7 @@ img.icon {
   width: 14px;
   height: 14px;
 }
+img.icon.big {
+  width: 42px;
+  height: 42px;
+}

@@ -1,15 +1,16 @@
 <template>
   <div id="app" class="container">
     <ul class="nav nav-tabs">
-      <li :class="isActive('/challenges') ? 'active' : ''"><router-link :to="{name: 'challenges'}">Challenges</router-link></li>
-      <li :class="isActive('/challenges') ? 'active' : ''"><router-link :to="{name: 'challenges'}">Questions</router-link></li>
-      <li :class="isActive('/challenges') ? 'active' : ''"><router-link :to="{name: 'challenges'}">Ranking</router-link></li>
+      <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Challenges</router-link></li>
+      <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Questions</router-link></li>
+      <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Ranking</router-link></li>
       <li class="dropdown">
         <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" v-on:click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
         <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : 'none' }">
+          <li><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></li>
           <li class="divider"></li>
-          <li :class="loading || me.id ? 'disabled' : ''"><a v-on:click="showDropdown = !showDropdown" href="#">Login with Twitter</a></li>
-          <li :class="loading || !me.id ? 'disabled' : ''"><a v-on:click="showDropdown = !showDropdown" href="#">Logout</a></li>
+          <li :class="{disabled: !me.id || me.id !== 'nobody'}"><a v-on:click="showDropdown = !showDropdown" :href="twitterLoginURL">Login with Twitter</a></li>
+          <li :class="{disabled: !me.id || me.id === 'nobody'}"><a v-on:click="showDropdown = !showDropdown" :href="logoutURL">Logout</a></li>
         </ul>
       </li>
     </ul>
@@ -19,17 +20,41 @@
 </template>
 
 <script>
+import axios from 'axios'
+const api = axios.create({
+  withCredentials: true
+})
+
+import nobodyIcon from './assets/nobody.svg'
+
 export default {
   data() {
     return {
-      loading: true,
       showDropdown: false,
+      twitterLoginURL: `${process.env.API_URL_PREFIX}/auth/twitter`,
+      logoutURL: `${process.env.API_URL_PREFIX}/logout`,
       me: {}
     }
+  },
+  created() {
+    this.fetchMe()
   },
   methods: {
     isActive(path) {
       return this.$route.path === path
+    },
+    fetchMe() {
+      api.get(`${process.env.API_URL_PREFIX}/users/me`)
+      .then(res => res.data)
+      .then((data) => {
+        for (const key in data) {
+          this.$set(this.me, key, data[key])
+        }
+        if (this.me.id === 'nobody') {
+          this.me.name = "Guest"
+          this.me.icon_url = nobodyIcon
+        }
+      })
     }
   }
 }
