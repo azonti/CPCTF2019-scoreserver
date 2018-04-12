@@ -214,6 +214,9 @@ func GetLastSolvedChallenge(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
 	}
+	if user.LastSolvedChallengeID == "" {
+		return c.NoContent(http.StatusNoContent)
+	}
 	challenge, err := model.GetChallengeByID(user.LastSolvedChallengeID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the last solved challenge record: %v", err))
