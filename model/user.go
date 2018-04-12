@@ -34,9 +34,7 @@ type User struct {
 
 //Nobody a User Record which does Not Exist Actually
 var Nobody = &User{
-	ID:      "nobody:0",
-	Name:    "Nobody",
-	IconURL: os.Getenv("NOBODY_ICON_URL"),
+	ID: "nobody",
 }
 
 var appOnlyAuthConfig = map[string]*clientcredentials.Config{
