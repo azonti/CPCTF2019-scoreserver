@@ -163,6 +163,10 @@ func CheckCode(c echo.Context) error {
 		if err := me.MakeMeOnsite(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
+	case "recreate_webshell_container":
+		if err := me.RecreateWebShellContainer(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
 	}
 	switch {
 	case strings.HasPrefix(req.Code, "flag:"):

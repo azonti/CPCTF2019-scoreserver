@@ -167,6 +167,25 @@ func (user *User) OpenHint(id string) error {
 	return nil
 }
 
+//RecreateWebShellContainer Recreate the User's Web Shell Container
+func (user *User) RecreateWebShellContainer() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	webShellRes, err := webShellCli.Create(ctx, &webshell.Request{
+		Id:          id,
+		ScreenName:  map[bool]string{true: twitterScreenName, false: id}[twitterScreenName != ""],
+		DisplayName: name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create the user's web shell container: %v", err)
+	}
+	if err := db.C("user").UpdateID(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.WebShellPass = webShellRes.GetPassword()
+	return nil
+}
+
 //GetSolvedChallenges Get the Challenges which the User solved
 func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
 	pipe := db.C("challenge").Pipe([]bson.M{
