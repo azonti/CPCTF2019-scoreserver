@@ -208,8 +208,8 @@ func (user *User) GetScore() (int, error) {
 
 func (user *User) setLastSolvedChallengeID(challengeID string) error {
 	now := time.Now()
-	if err := db.C("challenge").UpdateId(user.ID, bson.M{"$set": bson.M{"last_solved_challenge_id": challengeID, "last_solved_time": now}}); err != nil {
-		return fmt.Errorf("faield to update the user record: %v", err)
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"last_solved_challenge_id": challengeID, "last_solved_time": now}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
 	}
 	user.LastSolvedChallengeID, user.LastSolvedTime = challengeID, now
 	return nil
