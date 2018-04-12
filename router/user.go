@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type userJSON struct {
@@ -149,23 +150,30 @@ func CheckCode(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 	me := c.Get("me").(*model.User)
+	now, finish := time.Now(), model.FinishTime()
 	switch req.Code {
 	case os.Getenv("AUTHOR_CODE"):
 		if err := me.MakeMeAuthor(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	case os.Getenv("ONSITE_CODE"):
+		if !finish.After(now) && !me.IsAuthor {
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
+		}
 		if err := me.MakeMeOnsite(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	}
 	switch {
 	case strings.HasPrefix(req.Code, "flag:"):
+		if !finish.After(now) && !me.IsAuthor {
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
+		}
 		if err := me.OpenHint(string([]rune(req.Code)[5:])); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	default:
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the code is wrong"))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("the code is wrong"))
 	}
 	return c.NoContent(http.StatusNoContent)
 }
