@@ -37,7 +37,7 @@ func main() {
 	g.GET("/users", router.GetUsers)
 	g.GET("/users/:userID", router.GetUser)
 	g.GET("/users/me", router.GetMe)
-	g.POST("/users/:userID", router.CheckCode)
+	g.POST("/users/me", router.CheckCode, router.EnsureIExist)
 	g.GET("/users/:userID/solved", router.GetSolvedChallenges)
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
 	e.Logger.Fatal(e.Start(":" + os.Getenv("BIND_PORT")))

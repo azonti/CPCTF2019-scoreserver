@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type userJSON struct {
@@ -139,16 +140,8 @@ func GetMe(c echo.Context) error {
 	return c.JSON(http.StatusOK, json)
 }
 
-//CheckCode the Method Handler of "POST /users/:userID"
+//CheckCode the Method Handler of "POST /users/me"
 func CheckCode(c echo.Context) error {
-	userID := c.Param("userID")
-	user, err := model.GetUserByID(userID, false)
-	if err != nil {
-		if err == model.ErrUserNotFound {
-			return echo.NewHTTPError(http.StatusNotFound)
-		}
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
-	}
 	req := &struct {
 		Code string `form:"code"`
 	}{}
@@ -156,16 +149,19 @@ func CheckCode(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 	me := c.Get("me").(*model.User)
-	if me.ID != userID && !me.IsAuthor {
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the user is not you"))
-	}
 	switch req.Code {
 	case os.Getenv("AUTHOR_CODE"):
-		if err := user.MakeMeAuthor(); err != nil {
+		if err := me.MakeMeAuthor(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	case os.Getenv("ONSITE_CODE"):
-		if err := user.MakeMeOnsite(); err != nil {
+		if err := me.MakeMeOnsite(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	}
+	switch {
+	case strings.HasPrefix(req.Code, "flag:"):
+		if err := me.OpenHint(string([]rune(req.Code)[5:])); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	default:

@@ -157,6 +157,16 @@ func (user *User) MakeMeOnsite() error {
 	return nil
 }
 
+//OpenHint Open the Hint
+func (user *User) OpenHint(id string) error {
+	newOpenedHintIDs := append(user.OpenedHintIDs, id)
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"opened_hint_ids": newOpenedHintIDs}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.OpenedHintIDs = newOpenedHintIDs
+	return nil
+}
+
 //GetSolvedChallenges Get the Challenges which the User solved
 func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
 	pipe := db.C("challenge").Pipe([]bson.M{
