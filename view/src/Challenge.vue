@@ -40,7 +40,7 @@
                 <p class="well">{{ hint.caption || `Not opened. This hint's penalty is ${hint.penalty}.` }}</p>
               </div>
               <div class="col-md-2">
-                <button v-if="!hint.caption" class="btn btn-primary" style="width: 100%;" @click="openHint(hint.id);">Open Hint {{ parseInt(hint.id.substr(challenge.id.length + 1)) + 1 }}</button>
+                <button v-if="!openingHint && !hint.caption" class="btn btn-primary" style="width: 100%;" @click="openHint(hint.id);">Open Hint {{ parseInt(hint.id.substr(challenge.id.length + 1)) + 1 }}</button>
               </div>
             </div>
           </div>
@@ -54,10 +54,10 @@
           </div>
           <div class="row" style="margin-top: 20px;">
             <div class="col-md-10">
-              <input class="form-control" v-model="flag" placeholder="CPCTF{FL4G_1S_H3RE}">
+              <input class="form-control" v-model="flag" placeholder="FLAG{FL4G_1S_H3RE}">
             </div>
             <div class="col-md-2">
-              <button v-if="!challenge.answer" @click="checkFlag" class="btn btn-primary" style="width: 100%;">Check</button>
+              <button v-if="!checkingFlag && !challenge.answer" @click="checkFlag" class="btn btn-primary" style="width: 100%;">Check</button>
             </div>
           </div>
         </div>
@@ -66,6 +66,8 @@
     <div v-else>
       <p>Loading...</p>
     </div>
+    <error-modal :errors="errors" />
+    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -82,7 +84,11 @@ export default {
   data () {
     return {
       challenge: {},
-      flag: ''
+      flag: '',
+      openingHint: false,
+      checkingFlag: false,
+      errors: [],
+      successes: []
     }
   },
   created () {
@@ -104,21 +110,34 @@ export default {
         this.flag = this.challenge.flag
         this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
       })
+      .catch((err) => {
+        this.errors.push(`Message: ${err.response.data.message}`)
+      })
     },
     checkFlag () {
+      this.checkingFlag = true
       api.post(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, {
         flag: this.flag
       })
+      .then(() => this.fetchChallenge())
+      .catch((err) => {
+        this.errors.push(`Message: ${err.response.data.message}`)
+      })
       .then(() => {
-        fetchChallenge()
+        this.checkingFlag = false
       })
     },
     openHint (id) {
+      this.openingHint = true
       api.post(`${process.env.API_URL_PREFIX}/users/me`, {
         code: `hint:${id}`
       })
+      .then(() => this.fetchChallenge())
+      .catch((err) => {
+        this.errors.push(`Message: ${err.response.data.message}`)
+      })
       .then(() => {
-        this.fetchChallenge()
+        this.openingHint = false
       })
     }
   }

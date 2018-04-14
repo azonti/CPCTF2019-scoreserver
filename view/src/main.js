@@ -12,6 +12,7 @@ import User from './User.vue'
 
 import Modal from './Modal.vue'
 import ErrorModal from './ErrorModal.vue'
+import SuccessModal from './SuccessModal.vue'
 
 import './assets/css/hacker.css'
 import './assets/css/my.css'
@@ -20,6 +21,7 @@ Vue.use(Router)
 
 Vue.component('modal', Modal)
 Vue.component('error-modal', ErrorModal)
+Vue.component('success-modal', SuccessModal)
 
 const router = new Router({
   mode: 'history',

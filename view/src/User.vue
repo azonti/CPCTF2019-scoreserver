@@ -27,6 +27,15 @@
         </div>
         <div v-if="user.id === myID" class="col-md-8">
           <h2 style="margin-top: 0;">Settings</h2>
+          <h3>Code</h3>
+          <div class="row">
+            <div class="col-md-10">
+              <input class="form-control" v-model="code" placeholder="4WESOME_C0DE_I5_H3RE">
+            </div>
+            <div class="col-md-2">
+              <button v-if="!sendingCode" @click="sendCode" class="btn btn-primary" style="width: 100%;">Check</button>
+            </div>
+          </div>
           <h3>WebShell</h3>
           <button v-show="!recreatingContainer" class="btn btn-danger" style="width: 100%;" @click="recreateContainerWarn = true">Recreate WebShell Container</button>
         </div>
@@ -42,6 +51,7 @@
       :modal="{ title: 'Are you sure?', body: 'Your container will be fully initialized and your data will be lost.', showCancel: true, btnClass: 'btn-danger', btnBody: 'Sure' }"
     />
     <error-modal :errors="errors" />
+    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -60,47 +70,68 @@ export default {
       user: {},
       solved: [],
       myID: '',
+      code: '',
       recreateContainerWarn: false,
+      sendingCode: false,
       recreatingContainer: false,
-      errors: []
+      errors: [],
+      successes: []
     }
   },
   created () {
     this.fetchUser()
   },
   watch: {
-    id (to, from) {
+    id (val) {
       this.fetchUser()
     }
   },
   methods: {
     fetchUser () {
-      api.get(`${process.env.API_URL_PREFIX}/users/${this.id}`)
-      .then(res => res.data)
-      .then((data) => {
-        for (const key in data) {
-          this.$set(this.user, key, data[key])
-        }
+      Promise.all([
+        api.get(`${process.env.API_URL_PREFIX}/users/${this.id}`)
+        .then(res => res.data)
+        .then((data) => {
+          for (const key in data) {
+            this.$set(this.user, key, data[key])
+          }
+        }),
+        api.get(`${process.env.API_URL_PREFIX}/users/${this.id}/solved`)
+        .then(res => res.data)
+        .then((data) => {
+          this.solved.push(...data)
+        }),
+        api.get(`${process.env.API_URL_PREFIX}/users/me`)
+        .then(res => res.data)
+        .then((data) => {
+          this.myID = data.id
+        })
+      ])
+      .catch((err) => {
+        this.errors.push(`Message: ${err.response.data.message}`)
+      })
+    },
+    sendCode () {
+      this.sendingCode = true
+      api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: this.code })
+      .then(() => {
+        this.successes.push('Your code has been activated.')
       })
       .catch((err) => {
-        this.errors.push(err.response.data)
+        this.errors.push(`Message: ${err.response.data.message}`)
       })
-      api.get(`${process.env.API_URL_PREFIX}/users/${this.id}/solved`)
-      .then(res => res.data)
-      .then((data) => {
-        this.solved.push(...data)
-      })
-      api.get(`${process.env.API_URL_PREFIX}/users/me`)
-      .then(res => res.data)
-      .then((data) => {
-        this.myID = data.id
+      .then(() => {
+        this.sendingCode = false
       })
     },
     recreateContainer () {
       this.recreatingContainer = true
       api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: 'rwsc' })
+      .then(() => {
+        this.successes.push('Your container has been recreated.')
+      })
       .catch((err) => {
-        this.errors.push(err.response.data)
+        this.errors.push(`Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.recreatingContainer = false

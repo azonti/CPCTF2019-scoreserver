@@ -24,6 +24,8 @@
     <div v-else>
       <p>Loading...</p>
     </div>
+    <error-modal :errors="errors" />
+    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -37,7 +39,8 @@ export default {
   data () {
     return {
       loading: true,
-      users: []
+      users: [],
+      errors: []
     }
   },
   created () {
@@ -49,6 +52,11 @@ export default {
       .then(res => res.data)
       .then((data) => {
         this.users.push(...data.filter(a => !a.is_author).sort((a, b) => (b.score - a.score)))
+      })
+      .catch((err) => {
+        this.errors.push(`Message: ${err.response.data.message}`)
+      })
+      .then(() => {
         this.loading = false
       })
     }

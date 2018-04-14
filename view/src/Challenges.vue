@@ -32,6 +32,8 @@
     <div v-else>
       <p>Loading ...</p>
     </div>
+    <error-modal :errors="errors" />
+    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -45,7 +47,9 @@ export default {
   data () {
     return {
       loading: true,
-      genre2Challenges: {}
+      genre2Challenges: {},
+      errors: [],
+      successes: []
     }
   },
   created () {
@@ -59,6 +63,11 @@ export default {
         for (const challenge of data) {
           this.$set(this.genre2Challenges, challenge.genre, (this.genre2Challenges[challenge.genre] || []).concat(challenge))
         }
+      })
+      .catch((err) => {
+        this.errors.push(`Message: ${err.response.data.message}`)
+      })
+      .then(() => {
         this.loading = false
       })
     }
