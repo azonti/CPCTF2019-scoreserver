@@ -33,19 +33,28 @@ func AuthCallback(c echo.Context) error {
 	provider := c.Param("provider")
 
 	query := c.Request().URL.Query()
-	id, err := model.GetAuthedUserID(provider, &query)
-	if err != nil {
-		if err == model.ErrUnknownProvider {
-			return echo.NewHTTPError(http.StatusNotFound)
+	if query.Get("denied") != "" {
+		id, err := model.GetAuthedUserID(provider, &query)
+		if err != nil {
+			if err == model.ErrUnknownProvider {
+				return echo.NewHTTPError(http.StatusNotFound)
+			}
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the authenticated user's ID: %v", err))
 		}
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the authenticated user's ID: %v", err))
-	}
-	user, err := model.GetUserByID(id, true)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
-	}
-	if err := user.SetToken(); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to set a token: %v", err))
+		user, err := model.GetUserByID(id, true)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
+		}
+		if err := user.SetToken(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to set a token: %v", err))
+		}
+		tokenCookie := &http.Cookie{
+			Name:    "token",
+			Value:   user.Token,
+			Expires: user.TokenExpires,
+			Path:    "/",
+		}
+		c.SetCookie(tokenCookie)
 	}
 	redirectURL := "/"
 	if cookie, err := c.Cookie("redirect_url"); err == nil {
@@ -58,13 +67,6 @@ func AuthCallback(c echo.Context) error {
 		}
 		c.SetCookie(redirectURLCookie)
 	}
-	tokenCookie := &http.Cookie{
-		Name:    "token",
-		Value:   user.Token,
-		Expires: user.TokenExpires,
-		Path:    "/",
-	}
-	c.SetCookie(tokenCookie)
 	return c.Redirect(http.StatusFound, redirectURL)
 }
 
