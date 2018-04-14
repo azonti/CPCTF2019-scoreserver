@@ -214,5 +214,5 @@ func CheckAnswer(c echo.Context) error {
 	if err := challenge.AddWhoSolved(me); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to add you to the list of who solved: %v", err))
 	}
-	return c.Redirect(http.StatusSeeOther, "/challenges/"+challengeID)
+	return c.Redirect(http.StatusSeeOther, os.Getenv("API_URL_PREFIX")+"/challenges/"+challengeID)
 }
