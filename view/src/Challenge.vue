@@ -119,6 +119,9 @@ export default {
       api.post(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, {
         flag: this.flag
       })
+      .then(() => {
+        successes.push('Congrats!!')
+      })
       .then(() => this.fetchChallenge())
       .catch((err) => {
         this.errors.push(`Message: ${err.response.data.message}`)
