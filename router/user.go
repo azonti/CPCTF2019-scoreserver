@@ -168,6 +168,9 @@ func CheckCode(c echo.Context) error {
 		}
 		return c.NoContent(http.StatusNoContent)
 	case "rwsc":
+		if !me.IsOnsite {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("you are not onsite"))
+		}
 		if err := me.RecreateWebShellContainer(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}

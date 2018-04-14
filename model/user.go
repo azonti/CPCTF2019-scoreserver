@@ -69,23 +69,12 @@ func GetUserByID(id string, force bool) (*User, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to get the user's information: %v", err)
 			}
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-			webShellRes, err := webShellCli.Create(ctx, &webshell.Request{
-				Id:          id,
-				ScreenName:  map[bool]string{true: twitterScreenName, false: id}[twitterScreenName != ""],
-				DisplayName: name,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("failed to create the user's web shell container: %v", err)
-			}
 			user := &User{
 				ObjectID:          bson.NewObjectId(),
 				ID:                id,
 				Name:              name,
 				IconURL:           iconURL,
 				TwitterScreenName: twitterScreenName,
-				WebShellPass:      webShellRes.GetPassword(),
 			}
 			if err := db.C("user").Insert(user); err != nil {
 				return nil, fmt.Errorf("failed to insert a new user record: %v", err)
@@ -150,6 +139,9 @@ func (user *User) MakeMeAuthor() error {
 
 //MakeMeOnsite Make the User Onsite
 func (user *User) MakeMeOnsite() error {
+	if err := user.RecreateWebShellContainer(); err != nil {
+		return fmt.Errorf("failed to create the user's web shell container: %v", err)
+	}
 	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_onsite": true}}); err != nil {
 		return fmt.Errorf("failed to update the user record: %v", err)
 	}
@@ -167,7 +159,7 @@ func (user *User) OpenHint(id string) error {
 	return nil
 }
 
-//RecreateWebShellContainer Recreate the User's Web Shell Container
+//RecreateWebShellContainer (Re)create the User's Web Shell Container
 func (user *User) RecreateWebShellContainer() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -177,7 +169,7 @@ func (user *User) RecreateWebShellContainer() error {
 		DisplayName: user.Name,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create the user's web shell container: %v", err)
+		return err
 	}
 	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
 		return fmt.Errorf("failed to update the user record: %v", err)
