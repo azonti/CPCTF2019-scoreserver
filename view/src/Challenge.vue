@@ -30,14 +30,14 @@
           <h2 style="margin-top: 0;">Description</h2>
           <div class="row">
             <div class="col-md-10">
-              <p class="well">{{ challenge.caption }}</p>
+              <p class="well"><markdown-container :body="challenge.caption" /></p>
             </div>
           </div>
           <div v-for="(hint, index) in challenge.hints">
             <h2>Hint #{{ index + 1 }}</h2>
             <div class="row">
               <div class="col-md-10">
-                <p class="well" v-if="hint.caption">{{ hint.caption }}</p>
+                <p class="well" v-if="hint.caption"><markdown-container :body="hint.caption" /></p>
                 <p class="well" v-else-if="index == 0 || challenge.hints[index-1].caption">This hint's penalty is <strong>{{ hint.penalty }}</strong>.</p>
                 <p class="well" v-else>Open hint #{{ index }} first.</p>
               </div>
@@ -50,7 +50,7 @@
             <h2>Answer</h2>
             <div class="row">
               <div class="col-md-10">
-                <p class="well">{{ challenge.answer }}</p>
+                <p class="well"><markdown-container :body="challenge.answer" /></p>
               </div>
             </div>
           </div>

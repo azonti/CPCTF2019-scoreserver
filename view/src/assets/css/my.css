@@ -7,3 +7,22 @@ img.icon.big {
   width: 42px;
   height: 42px;
 }
+
+.markdown a {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+.markdown code {
+  background-color: transparent;
+  border: 1px dotted #c7254e;
+}
+.markdown pre {
+  background-color: transparent;
+  border-color: #0c0;
+}
+.markdown pre code {
+  border: none;
+}
+.markdown img {
+  max-width: 100%;
+}
