@@ -36,8 +36,8 @@
               <button v-if="!sendingCode" @click="sendCode" class="btn btn-primary" style="width: 100%;">Check</button>
             </div>
           </div>
-          <h3>WebShell</h3>
-          <button v-show="!recreatingContainer" class="btn btn-danger" style="width: 100%;" @click="recreateContainerWarn = true">Recreate WebShell Container</button>
+          <h3 v-if="user.is_onsite">WebShell</h3>
+          <button v-if="user.is_onsite && !recreatingContainer" class="btn btn-danger" style="width: 100%;" @click="recreateContainerWarn = true">Recreate WebShell Container</button>
         </div>
       </div>
     </div>

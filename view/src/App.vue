@@ -8,6 +8,9 @@
         <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" @click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
         <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : '' }">
           <li><router-link @click.native="showDropdown = false" :to="me.id ? {name: 'user', params: {id: me.id}} : {}"><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></router-link></li>
+          <li class="divider" v-if="me.web_shell_pass"></li>
+          <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.site/`">Open webshell</a></li>
+          <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.site/_/`">Open file browser</a></li>
           <li class="divider"></li>
           <li :class="{disabled: me.id}"><a @click="showDropdown = false" :href="!me.id && twitterLoginURL">Login with Twitter</a></li>
           <li :class="{disabled: !me.id}"><a @click="showDropdown = false" :href="me.id && logoutURL">Logout</a></li>
