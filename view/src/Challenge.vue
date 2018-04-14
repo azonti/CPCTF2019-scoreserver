@@ -96,7 +96,7 @@ export default {
   },
   watch: {
     id (val) {
-     this.fetchChallenge()
+      this.fetchChallenge()
     }
   },
   methods: {
