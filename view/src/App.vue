@@ -6,11 +6,11 @@
       <li :class="{active: isActive('/ranking')}"><router-link :to="{name: 'ranking'}">Ranking</router-link></li>
       <li class="dropdown">
         <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" @click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
-        <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : 'none' }">
-          <li><router-link @click.native="showDropdown = !showDropdown" :to="me.id ? {name: 'user', params: {id: me.id}} : {}"><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></router-link></li>
+        <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : '' }">
+          <li><router-link @click.native="showDropdown = false" :to="me.id ? {name: 'user', params: {id: me.id}} : {}"><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></router-link></li>
           <li class="divider"></li>
-          <li :class="{disabled: me.id}"><a @click="showDropdown = !showDropdown" :href="!me.id ? twitterLoginURL : '#'">Login with Twitter</a></li>
-          <li :class="{disabled: !me.id}"><a @click="showDropdown = !showDropdown" :href="me.id ? logoutURL : '#'">Logout</a></li>
+          <li :class="{disabled: me.id}"><a @click="showDropdown = false" :href="!me.id && twitterLoginURL">Login with Twitter</a></li>
+          <li :class="{disabled: !me.id}"><a @click="showDropdown = false" :href="me.id && logoutURL">Logout</a></li>
         </ul>
       </li>
     </ul>

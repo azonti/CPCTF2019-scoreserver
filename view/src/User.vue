@@ -28,13 +28,20 @@
         <div v-if="user.id === myID" class="col-md-8">
           <h2 style="margin-top: 0;">Settings</h2>
           <h3>WebShell</h3>
-          <button class="btn btn-danger" style="width: 100%;">Recreate WebShell Container</button>
+          <button v-show="!recreatingContainer" class="btn btn-danger" style="width: 100%;" @click="recreateContainerWarn = true">Recreate WebShell Container</button>
         </div>
       </div>
     </div>
     <div v-else>
       <p>Loading...</p>
     </div>
+    <modal
+      :show="recreateContainerWarn"
+      @close="recreateContainerWarn = false"
+      :callback="recreateContainer"
+      :modal="{ title: 'Are you sure?', body: 'Your container will be fully initialized and your data will be lost.', showCancel: true, btnClass: 'btn-danger', btnBody: 'Sure' }"
+    />
+    <error-modal :errors="errors" />
   </div>
 </template>
 
@@ -53,6 +60,9 @@ export default {
       user: {},
       solved: [],
       myID: '',
+      recreateContainerWarn: false,
+      recreatingContainer: false,
+      errors: []
     }
   },
   created () {
@@ -72,6 +82,9 @@ export default {
           this.$set(this.user, key, data[key])
         }
       })
+      .catch((err) => {
+        this.errors.push(err.response.data)
+      })
       api.get(`${process.env.API_URL_PREFIX}/users/${this.id}/solved`)
       .then(res => res.data)
       .then((data) => {
@@ -83,7 +96,15 @@ export default {
         this.myID = data.id
       })
     },
-    recreateWebShellContainer () {
+    recreateContainer () {
+      this.recreatingContainer = true
+      api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: 'rwsc' })
+      .catch((err) => {
+        this.errors.push(err.response.data)
+      })
+      .then(() => {
+        this.recreatingContainer = false
+      })
     }
   }
 }

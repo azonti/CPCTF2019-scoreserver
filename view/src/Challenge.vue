@@ -37,10 +37,10 @@
             <h2>Hint {{ hint.id.substr(challenge.id.length + 1) }}</h2>
             <div class="row">
               <div class="col-md-10">
-                <p class="well">{{ hint.caption ? hint.caption : `Not opened. This hint's penalty is ${hint.penalty}.` }}</p>
+                <p class="well">{{ hint.caption || `Not opened. This hint's penalty is ${hint.penalty}.` }}</p>
               </div>
               <div class="col-md-2">
-                <button v-if="!hint.caption" class="btn btn-primary" style="width: 100%;" @click="() => {openHint(hint.id)}">Open Hint {{ hint.id.substr(challenge.id.length + 1) }}</button>
+                <button v-if="!hint.caption" class="btn btn-primary" style="width: 100%;" @click="openHint(hint.id);">Open Hint {{ hint.id.substr(challenge.id.length + 1) }}</button>
               </div>
             </div>
           </div>
@@ -77,7 +77,7 @@ const api = axios.create({
 
 export default {
   props: [
-    "id"
+    'id'
   ],
   data () {
     return {
@@ -89,7 +89,7 @@ export default {
     this.fetchChallenge()
   },
   watch: {
-    id (to, from) {
+    id (val) {
      this.fetchChallenge()
     }
   },

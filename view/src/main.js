@@ -10,10 +10,16 @@ import Challenge from './Challenge.vue'
 import Ranking from './Ranking.vue'
 import User from './User.vue'
 
+import Modal from './Modal.vue'
+import ErrorModal from './ErrorModal.vue'
+
 import './assets/css/hacker.css'
 import './assets/css/my.css'
 
 Vue.use(Router)
+
+Vue.component('modal', Modal)
+Vue.component('error-modal', ErrorModal)
 
 const router = new Router({
   mode: 'history',
