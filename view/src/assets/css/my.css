@@ -1,6 +1,7 @@
 img.icon {
   width: 14px;
   height: 14px;
+  margin-right: 5px;
 }
 img.icon.big {
   width: 42px;

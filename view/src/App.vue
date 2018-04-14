@@ -3,14 +3,14 @@
     <ul class="nav nav-tabs">
       <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Challenges</router-link></li>
       <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Questions</router-link></li>
-      <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Ranking</router-link></li>
+      <li :class="{active: isActive('/ranking')}"><router-link :to="{name: 'ranking'}">Ranking</router-link></li>
       <li class="dropdown">
-        <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" v-on:click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
+        <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" @click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
         <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : 'none' }">
-          <li><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></li>
+          <li><router-link @click.native="showDropdown = !showDropdown" :to="me.id ? {name: 'user', params: {id: me.id}} : {}"><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></router-link></li>
           <li class="divider"></li>
-          <li :class="{disabled: !me.id || me.id !== 'nobody'}"><a v-on:click="showDropdown = !showDropdown" :href="twitterLoginURL">Login with Twitter</a></li>
-          <li :class="{disabled: !me.id || me.id === 'nobody'}"><a v-on:click="showDropdown = !showDropdown" :href="logoutURL">Logout</a></li>
+          <li :class="{disabled: me.id}"><a @click="showDropdown = !showDropdown" :href="!me.id ? twitterLoginURL : '#'">Login with Twitter</a></li>
+          <li :class="{disabled: !me.id}"><a @click="showDropdown = !showDropdown" :href="me.id ? logoutURL : '#'">Logout</a></li>
         </ul>
       </li>
     </ul>
@@ -28,31 +28,30 @@ const api = axios.create({
 import nobodyIcon from './assets/nobody.svg'
 
 export default {
-  data() {
+  data () {
     return {
       showDropdown: false,
       twitterLoginURL: `${process.env.API_URL_PREFIX}/auth/twitter`,
       logoutURL: `${process.env.API_URL_PREFIX}/logout`,
-      me: {}
+      me: {
+        name: 'Guest',
+        icon_url: nobodyIcon
+      }
     }
   },
-  created() {
+  created () {
     this.fetchMe()
   },
   methods: {
-    isActive(path) {
+    isActive (path) {
       return this.$route.path === path
     },
-    fetchMe() {
+    fetchMe () {
       api.get(`${process.env.API_URL_PREFIX}/users/me`)
       .then(res => res.data)
       .then((data) => {
         for (const key in data) {
           this.$set(this.me, key, data[key])
-        }
-        if (this.me.id === 'nobody') {
-          this.me.name = "Guest"
-          this.me.icon_url = nobodyIcon
         }
       })
     }

@@ -3,10 +3,12 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import headful from 'vue-headful'
 
-import App from './App'
-import Index from './Index'
-import Challenges from './Challenges'
-import Challenge from './Challenge'
+import App from './App.vue'
+import Index from './Index.vue'
+import Challenges from './Challenges.vue'
+import Challenge from './Challenge.vue'
+import Ranking from './Ranking.vue'
+import User from './User.vue'
 
 import './assets/css/hacker.css'
 import './assets/css/my.css'
@@ -31,7 +33,19 @@ const router = new Router({
       name: 'challenge',
       props: true,
       component: Challenge
+    },
+    {
+      path: '/ranking',
+      name: 'ranking',
+      component: Ranking
+    },
+    {
+      path: '/users/:id',
+      name: 'user',
+      props: true,
+      component: User
     }
+
   ]
 })
 
