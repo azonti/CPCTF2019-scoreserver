@@ -158,6 +158,7 @@ func CheckCode(c echo.Context) error {
 		if err := me.MakeMeAuthor(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
+		return c.NoContent(http.StatusNoContent)
 	case os.Getenv("ONSITE_CODE"):
 		if !finish.After(now) && !me.IsAuthor {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
@@ -165,10 +166,12 @@ func CheckCode(c echo.Context) error {
 		if err := me.MakeMeOnsite(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-	case "recreate_webshell_container":
+		return c.NoContent(http.StatusNoContent)
+	case "rwsc":
 		if err := me.RecreateWebShellContainer(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
+		return c.NoContent(http.StatusNoContent)
 	}
 	switch {
 	case strings.HasPrefix(req.Code, "hint:"):
@@ -178,10 +181,10 @@ func CheckCode(c echo.Context) error {
 		if err := me.OpenHint(strings.TrimPrefix(req.Code, "hint:")); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
+		return c.NoContent(http.StatusNoContent)
 	default:
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("the code is wrong"))
 	}
-	return c.NoContent(http.StatusNoContent)
 }
 
 //GetSolvedChallenges the Method Handler of "GET /users/:userID/solved"
