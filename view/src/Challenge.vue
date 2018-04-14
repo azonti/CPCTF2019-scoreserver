@@ -33,14 +33,16 @@
               <p class="well">{{ challenge.caption }}</p>
             </div>
           </div>
-          <div v-for="hint in challenge.hints">
-            <h2>Hint {{ parseInt(hint.id.substr(challenge.id.length + 1)) + 1 }}</h2>
+          <div v-for="(hint, index) in challenge.hints">
+            <h2>Hint #{{ index + 1 }}</h2>
             <div class="row">
               <div class="col-md-10">
-                <p class="well">{{ hint.caption || `Not opened. This hint's penalty is ${hint.penalty}.` }}</p>
+                <p class="well" v-if="hint.caption">{{ hint.caption }}</p>
+                <p class="well" v-else-if="index == 0 || challenge.hints[index-1].caption">This hint's penalty is <strong>{{ hint.penalty }}</strong>.</p>
+                <p class="well" v-else>Open hint #{{ index }} first.</p>
               </div>
               <div class="col-md-2">
-                <button v-if="!openingHint && !hint.caption" class="btn btn-primary" style="width: 100%;" @click="openHint(hint.id);">Open Hint {{ parseInt(hint.id.substr(challenge.id.length + 1)) + 1 }}</button>
+                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption)" class="btn btn-primary" style="width: 100%;" @click="openHint(hint.id);">Open Hint #{{ index+1 }}</button>
               </div>
             </div>
           </div>
