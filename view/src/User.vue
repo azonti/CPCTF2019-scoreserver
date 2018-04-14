@@ -100,15 +100,15 @@ export default {
         .then(res => res.data)
         .then((data) => {
           this.solved.push(...data)
-        }),
-        api.get(`${process.env.API_URL_PREFIX}/users/me`)
-        .then(res => res.data)
-        .then((data) => {
-          this.myID = data.id
         })
       ])
       .catch((err) => {
         this.errors.push(`Message: ${err.response.data.message}`)
+      })
+      api.get(`${process.env.API_URL_PREFIX}/users/me`)
+      .then(res => res.data)
+      .then((data) => {
+        this.myID = data.id
       })
     },
     sendCode () {
