@@ -33,7 +33,7 @@ func AuthCallback(c echo.Context) error {
 	provider := c.Param("provider")
 
 	query := c.Request().URL.Query()
-	if query.Get("denied") != "" {
+	if query.Get("denied") == "" {
 		id, err := model.GetAuthedUserID(provider, &query)
 		if err != nil {
 			if err == model.ErrUnknownProvider {
