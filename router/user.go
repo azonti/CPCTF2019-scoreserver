@@ -2,12 +2,14 @@ package router
 
 import (
 	"fmt"
-	"git.trapti.tech/CPCTF2018/scoreserver/model"
-	"github.com/labstack/echo"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
+
+	"git.trapti.tech/CPCTF2018/scoreserver/model"
+	"github.com/labstack/echo"
 )
 
 type userJSON struct {
@@ -181,7 +183,24 @@ func CheckCode(c echo.Context) error {
 		if !finish.After(now) && !me.IsAuthor {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
 		}
-		if err := me.OpenHint(strings.TrimPrefix(req.Code, "hint:")); err != nil {
+		partedCode := strings.Split(req.Code, ":")
+		if len(partedCode) != 3 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid hint code"))
+		}
+		hintID := strings.Join(partedCode[1:], ":")
+		cnt := 0
+		for _, openedHintID := range me.OpenedHintIDs {
+			if hintID == openedHintID {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
+			}
+			if strings.HasPrefix(openedHintID, partedCode[1]+":") {
+				cnt += 1
+			}
+		}
+		if strconv.Itoa(cnt) != partedCode[2] {
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you cannot open this hint yet"))
+		}
+		if err := me.OpenHint(hintID); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusNoContent)
