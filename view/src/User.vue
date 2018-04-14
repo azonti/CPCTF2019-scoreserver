@@ -6,6 +6,10 @@
       <div class="row">
         <div class="col-md-4">
           <img :src="user.icon_url" style="width: 80%; height: 80%; margin-bottom: 5px">
+          <p>
+            <span class="badge" v-if="user.is_author">Author</span>
+            <span class="badge" v-if="user.is_onsite">Onsite</span>
+          </p>
           <dl class="row">
             <dt class="col-xs-4">Twitter</dt>
             <dd class="col-xs-8"><a v-if="user.twitter_screen_name" :href="`https://twitter.com/${user.twitter_screen_name}`">@{{ user.twitter_screen_name }}</a></dd>
@@ -54,6 +58,13 @@
     <success-modal :successes="successes" />
   </div>
 </template>
+
+<style>
+.badge {
+  border: 1px solid;
+  border-radius: 2px;
+}
+</style>
 
 <script>
 import axios from 'axios'
