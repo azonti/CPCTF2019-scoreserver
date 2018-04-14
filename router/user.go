@@ -16,6 +16,7 @@ type userJSON struct {
 	IconURL           string `json:"icon_url"`
 	TwitterScreenName string `json:"twitter_screen_name"`
 	IsAuthor          bool   `json:"is_author"`
+	IsOnsite          bool   `json:"is_onsite"`
 	Score             int    `json:"score"`
 	WebShellPass      string `json:"web_shell_pass"`
 }
@@ -32,6 +33,7 @@ func newUserJSON(me *model.User, user *model.User) (*userJSON, error) {
 		IconURL:           user.IconURL,
 		TwitterScreenName: user.TwitterScreenName,
 		IsAuthor:          user.IsAuthor,
+		IsOnsite:          user.IsOnsite,
 		Score:             score,
 		WebShellPass:      map[bool]string{true: user.WebShellPass}[canISeePass],
 	}
@@ -169,11 +171,11 @@ func CheckCode(c echo.Context) error {
 		}
 	}
 	switch {
-	case strings.HasPrefix(req.Code, "flag:"):
+	case strings.HasPrefix(req.Code, "hint:"):
 		if !finish.After(now) && !me.IsAuthor {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
 		}
-		if err := me.OpenHint(string([]rune(req.Code)[5:])); err != nil {
+		if err := me.OpenHint(strings.TrimPrefix(req.Code, "hint:")); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	default:

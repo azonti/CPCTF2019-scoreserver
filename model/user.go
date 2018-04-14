@@ -172,14 +172,14 @@ func (user *User) RecreateWebShellContainer() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	webShellRes, err := webShellCli.Create(ctx, &webshell.Request{
-		Id:          id,
-		ScreenName:  map[bool]string{true: twitterScreenName, false: id}[twitterScreenName != ""],
-		DisplayName: name,
+		Id:          user.ID,
+		ScreenName:  map[bool]string{true: user.TwitterScreenName, false: user.ID}[user.TwitterScreenName != ""],
+		DisplayName: user.Name,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create the user's web shell container: %v", err)
+		return fmt.Errorf("failed to create the user's web shell container: %v", err)
 	}
-	if err := db.C("user").UpdateID(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
 		return fmt.Errorf("failed to update the user record: %v", err)
 	}
 	user.WebShellPass = webShellRes.GetPassword()
@@ -252,7 +252,7 @@ func getUserInfo(id string) (string, string, string, error) {
 		data := &struct {
 			Name            string `json:"name"`
 			ScreenName      string `json:"screen_name"`
-			ProfileImageURL string `json:"profile_image_url"`
+			ProfileImageURL string `json:"profile_image_url_https"`
 		}{}
 		if _, err := client.R().SetResult(data).Get("https://api.twitter.com/1.1/users/show.json?user_id=" + rawID); err != nil {
 			return "", "", "", err
@@ -260,7 +260,8 @@ func getUserInfo(id string) (string, string, string, error) {
 		if data.Name == "" || data.ScreenName == "" || data.ProfileImageURL == "" {
 			return "", "", "", fmt.Errorf("failed for unknown reason")
 		}
-		return data.Name, data.ProfileImageURL, data.ScreenName, nil
+		r := strings.NewReplacer("_normal", "")
+		return data.Name, r.Replace(data.ProfileImageURL), data.ScreenName, nil
 	}
 	return "", "", "", ErrUnknownProvider
 }

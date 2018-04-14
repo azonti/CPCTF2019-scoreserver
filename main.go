@@ -36,7 +36,7 @@ func main() {
 	g.PUT("/questions/:questionID", router.PutQuestion, router.EnsureIAmAuthor)
 	g.GET("/users", router.GetUsers)
 	g.GET("/users/:userID", router.GetUser)
-	g.GET("/users/me", router.GetMe)
+	g.GET("/users/me", router.GetMe, router.EnsureIExist)
 	g.POST("/users/me", router.CheckCode, router.EnsureIExist)
 	g.GET("/users/:userID/solved", router.GetSolvedChallenges)
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
