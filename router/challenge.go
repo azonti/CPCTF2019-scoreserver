@@ -55,7 +55,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		hintJSONs[i] = &hintJSON{
 			ID:      hint.ID,
 			Caption: map[bool]string{true: hint.Caption}[canISeeHint],
-			Penalty: map[bool]int{true: hint.Penalty}[canISeeHint],
+			Penalty: hint.Penalty,
 		}
 	}
 	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolvedIDs))
