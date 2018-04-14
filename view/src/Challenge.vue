@@ -120,7 +120,7 @@ export default {
         flag: this.flag
       })
       .then(() => {
-        successes.push('Congrats!!')
+        this.successes.push('Congrats!!')
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {
