@@ -34,7 +34,7 @@
             </div>
           </div>
           <div v-for="hint in challenge.hints">
-            <h2>Hint {{ hint.id.substr(challenge.id.length + 1) }}</h2>
+            <h2>Hint {{ parseInt(hint.id.substr(challenge.id.length + 1)) + 1 }}</h2>
             <div class="row">
               <div class="col-md-10">
                 <p class="well">{{ hint.caption || `Not opened. This hint's penalty is ${hint.penalty}.` }}</p>
