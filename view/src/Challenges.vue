@@ -11,18 +11,18 @@
                 <h2 class="panel-title"><router-link :to="{name: 'challenge', params: {id: challenge.id}}">{{ challenge.name }}</router-link></h2>
               </div>
               <div class="panel-body">
-                <dt class="row">
+                <dl class="row">
                   <dt class="col-xs-4">Author</dt>
                   <dd class="col-xs-8"><router-link :to="{name: 'user', params: {id: challenge.author.id}}"><img :src="challenge.author.icon_url" class="icon">{{ challenge.author.name }}<small v-if="challenge.author.twitter_screen_name">(@{{ challenge.author.twitter_screen_name }})</small></router-link></dd>
-                </dt>
-                <dt class="row">
+                </dl>
+                <dl class="row">
                   <dt class="col-xs-4">Score</dt>
                   <dd class="col-xs-8">{{ challenge.score - challenge.hints.filter(hint => hint.caption).map(hint => hint.penalty).reduce((a, c) => (a + c)) }}</dd>
-                </dt>
-                <dt class="row">
+                </dl>
+                <dl class="row">
                   <dt class="col-xs-4">Solved By</dt>
                   <dd class="col-xs-8">{{ challenge.who_solved.length }}</dd>
-                </dt>
+                </dl>
               </div>
             </div>
           </div>
