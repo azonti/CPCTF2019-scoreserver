@@ -5,7 +5,7 @@
       :key="i"
       :show="show[i]"
       @close="$set(show, i, false)"
-      :modal="{ title: 'Error', body: error }"
+      :modal="{ title: 'Error', bodyClass: 'text-danger', body: error }"
     />
   </div>
 </template>

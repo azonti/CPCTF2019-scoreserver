@@ -1,5 +1,5 @@
 <template>
-  <article class="markdown" v-html="rendered"></article>
+  <article class="markdown well" v-html="rendered"></article>
 </template>
 
 <script>
@@ -27,4 +27,7 @@ export default {
 </script>
 
 <style>
+p:last-child {
+  margin: 0;
+}
 </style>

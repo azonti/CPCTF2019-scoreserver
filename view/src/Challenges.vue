@@ -6,7 +6,7 @@
         <h1>{{ challenges[0].genre }}</h1>
         <div class="row">
           <section v-for="challenge in challenges" class="col-md-4">
-            <div class="panel panel-primary">
+            <div class="panel" :class="challenge.who_solved.map(user => user.id).includes(me.id) ? 'panel-success' : 'panel-primary'">
               <div class="panel-heading">
                 <h2 class="panel-title"><router-link :to="{name: 'challenge', params: {id: challenge.id}}">{{ challenge.name }}</router-link></h2>
               </div>
@@ -32,8 +32,6 @@
     <div v-else>
       <p>Loading ...</p>
     </div>
-    <error-modal :errors="errors" />
-    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -44,12 +42,13 @@ const api = axios.create({
 })
 
 export default {
+  props: [
+    "me"
+  ],
   data () {
     return {
       loading: true,
-      genre2Challenges: {},
-      errors: [],
-      successes: []
+      genre2Challenges: {}
     }
   },
   created () {
@@ -65,7 +64,7 @@ export default {
         }
       })
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.loading = false

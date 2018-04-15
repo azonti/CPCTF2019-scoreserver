@@ -1,13 +1,14 @@
 <template>
   <div id="app" class="container">
     <ul class="nav nav-tabs">
-      <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Challenges</router-link></li>
-      <li :class="{active: isActive('/challenges')}"><router-link :to="{name: 'challenges'}">Questions</router-link></li>
-      <li :class="{active: isActive('/ranking')}"><router-link :to="{name: 'ranking'}">Ranking</router-link></li>
+      <router-link tag="li" :to="{name: 'challenges'}" @click.native="showDropdown = false"><a>Challenges</a></router-link>
+      <router-link tag="li" :to="{name: 'challenges'}" @click.native="showDropdown = false"><a>Questions</a></router-link>
+      <router-link tag="li" :to="{name: 'ranking'}" @click.native="showDropdown = false"><a>Ranking</a></router-link>
       <li class="dropdown">
         <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" @click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
         <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : '' }">
-          <li><router-link @click.native="showDropdown = false" :to="me.id ? {name: 'user', params: {id: me.id}} : {}"><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></router-link></li>
+          <router-link tag="li" v-if="me.id" :to="{name: 'user', params: {id: me.id}}" @click.native="showDropdown = false"><a><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></a></router-link>
+          <li v-else><a @click.prevent="showDropdown = false" href="#"><img :src="me.icon_url" class="icon big">{{ me.name }}</a></li>
           <li class="divider" v-if="me.web_shell_pass"></li>
           <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.site/`">Open webshell</a></li>
           <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.site/_/`">Open file browser</a></li>
@@ -17,8 +18,15 @@
         </ul>
       </li>
     </ul>
-    <router-view>
+    <router-view
+      :me="me"
+      @reloadMe="fetchMe"
+      @error="(error) => { errors.push(error); }"
+      @success="(success) => { successes.push(success); }"
+    >
     </router-view>
+    <error-modal :errors="errors" />
+    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -39,16 +47,15 @@ export default {
       me: {
         name: 'Guest',
         icon_url: nobodyIcon
-      }
+      },
+      errors: [],
+      successes: []
     }
   },
   created () {
     this.fetchMe()
   },
   methods: {
-    isActive (path) {
-      return this.$route.path === path
-    },
     fetchMe () {
       api.get(`${process.env.API_URL_PREFIX}/users/me`)
       .then(res => res.data)

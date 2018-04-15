@@ -30,19 +30,19 @@
           <h2 style="margin-top: 0;">Description</h2>
           <div class="row">
             <div class="col-md-10">
-              <p class="well"><markdown-container :body="challenge.caption" /></p>
+              <markdown-container :body="challenge.caption" />
             </div>
           </div>
           <div v-for="(hint, index) in challenge.hints">
             <h2>Hint #{{ index + 1 }}</h2>
             <div class="row">
               <div class="col-md-10">
-                <p class="well" v-if="hint.caption"><markdown-container :body="hint.caption" /></p>
+                <markdown-container v-if="hint.caption" :body="hint.caption" />
                 <p class="well" v-else-if="index == 0 || challenge.hints[index-1].caption">This hint's penalty is <strong>{{ hint.penalty }}</strong>.</p>
                 <p class="well" v-else>Open hint #{{ index }} first.</p>
               </div>
               <div class="col-md-2">
-                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption)" class="btn btn-primary" style="width: 100%;" @click="openHint(hint.id);">Open Hint #{{ index+1 }}</button>
+                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption)" class="btn btn-primary" style="width: 100%;" @click="hintToOpen = hint; openHintWarn = true;">Open Hint #{{ index+1 }}</button>
               </div>
             </div>
           </div>
@@ -50,7 +50,7 @@
             <h2>Answer</h2>
             <div class="row">
               <div class="col-md-10">
-                <p class="well"><markdown-container :body="challenge.answer" /></p>
+                <markdown-container :body="challenge.answer" />
               </div>
             </div>
           </div>
@@ -68,8 +68,12 @@
     <div v-else>
       <p>Loading...</p>
     </div>
-    <error-modal :errors="errors" />
-    <success-modal :successes="successes" />
+    <modal
+      :show="openHintWarn"
+      @close="openHintWarn = false"
+      :callback="openHint"
+      :modal="{ title: 'Are you sure?', body: `This hint's penalty is ${hintToOpen.penalty}`, showCancel: true, btnBody: 'Sure' }"
+    />
   </div>
 </template>
 
@@ -81,16 +85,17 @@ const api = axios.create({
 
 export default {
   props: [
-    'id'
+    'id',
+    'me'
   ],
   data () {
     return {
       challenge: {},
       flag: '',
+      hintToOpen: {},
+      openHintWarn: false,
       openingHint: false,
-      checkingFlag: false,
-      errors: [],
-      successes: []
+      checkingFlag: false
     }
   },
   created () {
@@ -113,7 +118,7 @@ export default {
         this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
       })
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
     },
     checkFlag () {
@@ -122,24 +127,24 @@ export default {
         flag: this.flag
       })
       .then(() => {
-        this.successes.push('Congrats!!')
+        this.$emit('success', 'Congrats!!')
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.checkingFlag = false
       })
     },
-    openHint (id) {
+    openHint () {
       this.openingHint = true
       api.post(`${process.env.API_URL_PREFIX}/users/me`, {
-        code: `hint:${id}`
+        code: `hint:${this.hintToOpen.id}`
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.openingHint = false

@@ -56,8 +56,8 @@ const router = new Router({
       props: true,
       component: User
     }
-
-  ]
+  ],
+  linkActiveClass: 'active'
 })
 
 Vue.component('vue-headful', headful)

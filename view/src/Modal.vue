@@ -4,11 +4,11 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h3 class="modal-title">{{ modal.title }}</h3>
             <button type="button" class="close" :aria-hidden="show ? 'false' : 'true'" @click="$emit('close');">&times;</button>
+            <h3 class="modal-title" :class="modal.bodyClass">{{ modal.title }}</h3>
           </div>
           <div class="modal-body">
-            <p>{{ modal.body }}</p>
+            <p :class="modal.bodyClass">{{ modal.body }}</p>
           </div>
           <div class="modal-footer">
             <button v-if="modal.showCancel" type="button" class="btn btn-default" @click="$emit('close');">Cancel</button>

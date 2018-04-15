@@ -29,7 +29,7 @@
             </dl>
           </div>
         </div>
-        <div v-if="user.id === myID" class="col-md-8">
+        <div v-if="user.id === me.id" class="col-md-8">
           <h2 style="margin-top: 0;">Settings</h2>
           <h3>Code</h3>
           <div class="row">
@@ -54,8 +54,6 @@
       :callback="recreateContainer"
       :modal="{ title: 'Are you sure?', body: 'Your container will be fully initialized and your data will be lost.', showCancel: true, btnClass: 'btn-danger', btnBody: 'Sure' }"
     />
-    <error-modal :errors="errors" />
-    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -74,19 +72,17 @@ const api = axios.create({
 
 export default {
   props: [
-    'id'
+    'id',
+    'me'
   ],
   data () {
     return {
       user: {},
       solved: [],
-      myID: '',
       code: '',
       recreateContainerWarn: false,
       sendingCode: false,
       recreatingContainer: false,
-      errors: [],
-      successes: []
     }
   },
   created () {
@@ -110,26 +106,25 @@ export default {
         api.get(`${process.env.API_URL_PREFIX}/users/${this.id}/solved`)
         .then(res => res.data)
         .then((data) => {
-          this.solved.push(...data)
+          this.solved.splice(0, data.length, ...data)
         })
       ])
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
-      })
-      api.get(`${process.env.API_URL_PREFIX}/users/me`)
-      .then(res => res.data)
-      .then((data) => {
-        this.myID = data.id
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
     },
     sendCode () {
       this.sendingCode = true
       api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: this.code })
       .then(() => {
-        this.successes.push('Your code has been activated.')
+        this.$emit('reloadMe')
+      })
+      .then(() => this.fetchUser())
+      .then(() => {
+        this.$emit('success', 'Your code has been activated.')
       })
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.sendingCode = false
@@ -139,10 +134,13 @@ export default {
       this.recreatingContainer = true
       api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: 'rwsc' })
       .then(() => {
-        this.successes.push('Your container has been recreated.')
+        this.$emit('reloadMe')
+      })
+      .then(() => {
+        this.$emit('success', 'Your container has been recreated.')
       })
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.recreatingContainer = false

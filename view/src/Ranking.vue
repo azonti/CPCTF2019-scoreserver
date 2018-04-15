@@ -24,8 +24,6 @@
     <div v-else>
       <p>Loading...</p>
     </div>
-    <error-modal :errors="errors" />
-    <success-modal :successes="successes" />
   </div>
 </template>
 
@@ -36,11 +34,13 @@ const api = axios.create({
 })
 
 export default {
+  props: [
+    'me'
+  ],
   data () {
     return {
       loading: true,
-      users: [],
-      errors: []
+      users: []
     }
   },
   created () {
@@ -51,10 +51,11 @@ export default {
       api.get(`${process.env.API_URL_PREFIX}/users`)
       .then(res => res.data)
       .then((data) => {
-        this.users.push(...data.filter(a => !a.is_author).sort((a, b) => (b.score - a.score)))
+        const sorted = data.filter(a => !a.is_author).sort((a, b) => (b.score - a.score))
+        this.users.splice(0, sorted.length, ...sorted)
       })
       .catch((err) => {
-        this.errors.push(`Message: ${err.response.data.message}`)
+        this.$emit('error', `Message: ${err.response.data.message}`)
       })
       .then(() => {
         this.loading = false
