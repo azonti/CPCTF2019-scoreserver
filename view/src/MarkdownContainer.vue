@@ -30,4 +30,7 @@ export default {
 p:last-child {
   margin: 0;
 }
+pre:last-child {
+  margin: 0;
+}
 </style>
