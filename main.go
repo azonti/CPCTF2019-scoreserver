@@ -2,11 +2,27 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"git.trapti.tech/CPCTF2018/scoreserver/model"
 	"git.trapti.tech/CPCTF2018/scoreserver/router"
 	"github.com/labstack/echo"
-	"os"
 )
+
+var authors = map[string]string{
+	"sobaya007":  "twitter_815355126",
+	"ninja":      "twitter_1248822217",
+	"g2":         "twitter_1305733021",
+	"yamada":     "twitter_1617602017",
+	"phi16":      "twitter_2164552933",
+	"baton":      "twitter_2345124847",
+	"youjo_tape": "twitter_3125166658",
+	"kaz":        "twitter_3136268972",
+	"s_cyan":     "twitter_3138984708",
+	"kriw":       "twitter_3140285179",
+	"nari":       "twitter_3229873712",
+	"to-hutohu":  "twitter_739379223303880704",
+}
 
 func main() {
 	if err := model.InitDB(); err != nil {
@@ -18,6 +34,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to init Web Shell Client: %v\n", err)
 	}
 	defer model.TermWebShellCli()
+
+	for name, id := range authors {
+		if err := model.PushAuthor(name, id); err != nil {
+			panic(err)
+		}
+	}
+
 	e := echo.New()
 	g := e.Group(os.Getenv("API_URL_PREFIX"))
 	g.Use(router.DetermineMe)

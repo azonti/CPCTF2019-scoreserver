@@ -3,6 +3,10 @@ package model
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	webshell "git.trapti.tech/CPCTF2018/webshell/rpc"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -10,9 +14,6 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	"gopkg.in/resty.v1"
-	"os"
-	"strings"
-	"time"
 )
 
 //User an User Record
@@ -56,6 +57,21 @@ func GetUsers() ([]*User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+//PushAuthor for debug
+func PushAuthor(name, id string) error {
+	user, err := GetUserByID(id, true)
+	if err != nil {
+		return err
+	}
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"name": name}}); err != nil {
+		return err
+	}
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_author": true}}); err != nil {
+		return err
+	}
+	return nil
 }
 
 //GetUserByID Get the User Record by their ID
