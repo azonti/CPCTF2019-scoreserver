@@ -63,23 +63,23 @@ dt, dd {
   line-height: 20px;
 }
 
-.panel-PPC      >.panel-body, .panel-PPC      >.panel-body a, .chal-name-PPC       { color: rgb(253, 105, 64) }
-.panel-Forensics>.panel-body, .panel-Forensics>.panel-body a, .chal-name-Forensics { color: rgb(185, 5,   218) }
-.panel-Web      >.panel-body, .panel-Web      >.panel-body a, .chal-name-Web       { color: rgb(29,  146, 241) }
-.panel-Binary   >.panel-body, .panel-Binary   >.panel-body a, .chal-name-Binary    { color: rgb(64,  253, 105) }
-.panel-Pwn      >.panel-body, .panel-Pwn      >.panel-body a, .chal-name-Pwn       { color: rgb(218, 185, 5) }
-.panel-Misc     >.panel-body, .panel-Misc     >.panel-body a, .chal-name-Misc      { color: rgb(241, 29,  146) }
-.panel-Shell    >.panel-body, .panel-Shell    >.panel-body a, .chal-name-Shell     { color: rgb(105, 64,  253) }
-.panel-Crypto   >.panel-body, .panel-Crypto   >.panel-body a, .chal-name-Crypto    { color: rgb(5,   218, 185) }
-.panel-OSINT    >.panel-body, .panel-OSINT    >.panel-body a, .chal-name-OSINT     { color: rgb(146, 241, 29) }
+.panel-PPC      >.panel-body, .panel-success.panel-PPC      >.panel-heading a, .panel-PPC      >.panel-body a, .chal-name-PPC       { color: rgb(253, 105, 64) }
+.panel-Forensics>.panel-body, .panel-success.panel-Forensics>.panel-heading a, .panel-Forensics>.panel-body a, .chal-name-Forensics { color: rgb(185, 5,   218) }
+.panel-Web      >.panel-body, .panel-success.panel-Web      >.panel-heading a, .panel-Web      >.panel-body a, .chal-name-Web       { color: rgb(29,  146, 241) }
+.panel-Binary   >.panel-body, .panel-success.panel-Binary   >.panel-heading a, .panel-Binary   >.panel-body a, .chal-name-Binary    { color: rgb(64,  253, 105) }
+.panel-Pwn      >.panel-body, .panel-success.panel-Pwn      >.panel-heading a, .panel-Pwn      >.panel-body a, .chal-name-Pwn       { color: rgb(218, 185, 5) }
+.panel-Misc     >.panel-body, .panel-success.panel-Misc     >.panel-heading a, .panel-Misc     >.panel-body a, .chal-name-Misc      { color: rgb(241, 29,  146) }
+.panel-Shell    >.panel-body, .panel-success.panel-Shell    >.panel-heading a, .panel-Shell    >.panel-body a, .chal-name-Shell     { color: rgb(105, 64,  253) }
+.panel-Crypto   >.panel-body, .panel-success.panel-Crypto   >.panel-heading a, .panel-Crypto   >.panel-body a, .chal-name-Crypto    { color: rgb(5,   218, 185) }
+.panel-OSINT    >.panel-body, .panel-success.panel-OSINT    >.panel-heading a, .panel-OSINT    >.panel-body a, .chal-name-OSINT     { color: rgb(146, 241, 29) }
 
-.panel-PPC      , .panel-PPC      >.panel-heading { background-color: rgb(253, 105, 64);  border-color: rgb(253, 105, 64)  }
-.panel-Forensics, .panel-Forensics>.panel-heading { background-color: rgb(185, 5,   218); border-color: rgb(185, 5,   218) }
-.panel-Web      , .panel-Web      >.panel-heading { background-color: rgb(29,  146, 241); border-color: rgb(29,  146, 241) }
-.panel-Binary   , .panel-Binary   >.panel-heading { background-color: rgb(64,  253, 105); border-color: rgb(64,  253, 105) }
-.panel-Pwn      , .panel-Pwn      >.panel-heading { background-color: rgb(218, 185, 5);   border-color: rgb(218, 185, 5)   }
-.panel-Misc     , .panel-Misc     >.panel-heading { background-color: rgb(241, 29,  146); border-color: rgb(241, 29,  146) }
-.panel-Shell    , .panel-Shell    >.panel-heading { background-color: rgb(105, 64,  253); border-color: rgb(105, 64,  253) }
-.panel-Crypto   , .panel-Crypto   >.panel-heading { background-color: rgb(5,   218, 185); border-color: rgb(5,   218, 185) }
-.panel-OSINT    , .panel-OSINT    >.panel-heading { background-color: rgb(146, 241, 29);  border-color: rgb(146, 241, 29)  }
+.panel-PPC      , .panel-primary.panel-PPC       >.panel-heading { background-color: rgb(253, 105, 64);  border-color: rgb(253, 105, 64)  }
+.panel-Forensics, .panel-primary.panel-Forensics >.panel-heading { background-color: rgb(185, 5,   218); border-color: rgb(185, 5,   218) }
+.panel-Web      , .panel-primary.panel-Web       >.panel-heading { background-color: rgb(29,  146, 241); border-color: rgb(29,  146, 241) }
+.panel-Binary   , .panel-primary.panel-Binary    >.panel-heading { background-color: rgb(64,  253, 105); border-color: rgb(64,  253, 105) }
+.panel-Pwn      , .panel-primary.panel-Pwn       >.panel-heading { background-color: rgb(218, 185, 5);   border-color: rgb(218, 185, 5)   }
+.panel-Misc     , .panel-primary.panel-Misc      >.panel-heading { background-color: rgb(241, 29,  146); border-color: rgb(241, 29,  146) }
+.panel-Shell    , .panel-primary.panel-Shell     >.panel-heading { background-color: rgb(105, 64,  253); border-color: rgb(105, 64,  253) }
+.panel-Crypto   , .panel-primary.panel-Crypto    >.panel-heading { background-color: rgb(5,   218, 185); border-color: rgb(5,   218, 185) }
+.panel-OSINT    , .panel-primary.panel-OSINT     >.panel-heading { background-color: rgb(146, 241, 29);  border-color: rgb(146, 241, 29)  }
 
