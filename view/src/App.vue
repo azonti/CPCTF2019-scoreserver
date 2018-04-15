@@ -1,9 +1,9 @@
 <template>
   <div id="app" class="container">
     <ul class="nav nav-tabs">
-      <router-link tag="li" :to="{name: 'challenges'}" @click.native="showDropdown = false"><a>Challenges</a></router-link>
-      <router-link tag="li" :to="{name: 'challenges'}" @click.native="showDropdown = false"><a>Questions</a></router-link>
-      <router-link tag="li" :to="{name: 'ranking'}" @click.native="showDropdown = false"><a>Ranking</a></router-link>
+      <router-link tag="li" :to="{name: 'challenges'}" exact @click.native="showDropdown = false"><a>Challenges</a></router-link>
+      <router-link tag="li" :to="{name: 'challenges'}" exact @click.native="showDropdown = false"><a>Questions</a></router-link>
+      <router-link tag="li" :to="{name: 'ranking'}" exact @click.native="showDropdown = false"><a>Ranking</a></router-link>
       <li class="dropdown">
         <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" @click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
         <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : '' }">
