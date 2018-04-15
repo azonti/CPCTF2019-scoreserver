@@ -7,20 +7,20 @@
           <div class="panel" :class="question.answer ? 'panel-success' : 'panel-primary'">
             <div class="panel-body">
               <dt class="row">
-                <dt class="col-xs-4">Questioner</dt>
-                <dd class="col-xs-8"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
+                <dt class="col-xs-2">Questioner</dt>
+                <dd class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
               </dt>
               <dt class="row">
-                <dt class="col-xs-4">Question</dt>
-                <dd class="col-xs-8">{{ question.query }}</dd>
+                <dt class="col-xs-2">Question</dt>
+                <dd class="col-xs-10">{{ question.query }}</dd>
               </dt>
               <dt class="row">
-                <dt class="col-xs-4">Answerer</dt>
-                <dd v-if="question.answerer" class="col-xs-8"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
+                <dt class="col-xs-2">Answerer</dt>
+                <dd v-if="question.answerer" class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
               </dt>
               <dt class="row">
-                <dt class="col-xs-4">Answer</dt>
-                <dd class="col-xs-8">{{ question.answer }}</dd>
+                <dt class="col-xs-2">Answer</dt>
+                <dd class="col-xs-10">{{ question.answer }}</dd>
               </dt>
             </div>
           </div>
