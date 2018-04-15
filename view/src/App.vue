@@ -18,9 +18,15 @@
         </ul>
       </li>
     </ul>
+    <div v-show="newAnswer" class="alert alert-dismissible alert-success">
+      <button type="button" class="close" @click="newAnswer = false">&times;</button>
+      Your new question has been answered! <router-link :to="{name: 'questions'}" @click.native="newAnswer = false">Check</router-link>
+    </div>
     <router-view
       :me="me"
+      :questions="questions"
       @reloadMe="fetchMe"
+      @reloadQuestions="fetchQuestions"
       @error="(error) => { errors.push(error); }"
       @success="(success) => { successes.push(success); }"
     >
@@ -48,14 +54,28 @@ export default {
         name: 'Guest',
         icon_url: nobodyIcon
       },
+      questions: [],
+      newAnswer: false,
       errors: [],
       successes: []
     }
   },
   created () {
     this.fetchMe()
+    this.fetchQuestions(true)
+    setInterval(this.fetchQuestions, 60000)
   },
   methods: {
+    fetchQuestions (first) {
+      api.get(`${process.env.API_URL_PREFIX}/questions`)
+      .then(res => res.data)
+      .then((data) => {
+        if (!first) {
+          this.newAnswer = this.questions.filter(question => question.answer).length !== data.filter(datum => datum.answer).length
+        }
+        this.questions.splice(0, data.length, ...data)
+      })
+    },
     fetchMe () {
       api.get(`${process.env.API_URL_PREFIX}/users/me`)
       .then(res => res.data)

@@ -139,7 +139,11 @@ func PutQuestion(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
-	if err := question.Update(req.Questioner.ID, req.Answerer.ID, req.Challenge.ID, req.Query, req.Answer); err != nil {
+	var challengeID = ""
+	if req.Challenge != nil {
+		challengeID = req.Challenge.ID
+	}
+	if err := question.Update(req.Questioner.ID, req.Answerer.ID, challengeID, req.Query, req.Answer); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)

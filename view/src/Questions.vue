@@ -1,46 +1,41 @@
 <template>
   <div>
     <vue-headful title="Questions | CPCTF2018" />
-    <div v-if="!loading">
-      <div class="row">
-        <div v-for="question in questions" class="col-md-6">
-          <div class="panel" :class="question.answer ? 'panel-success' : 'panel-primary'">
-            <div class="panel-body">
-              <dt class="row">
-                <dt class="col-xs-2">Questioner</dt>
-                <dd class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
-              </dt>
-              <dt class="row">
-                <dt class="col-xs-2">Question</dt>
-                <dd class="col-xs-10">{{ question.query }}</dd>
-              </dt>
-              <dt class="row">
-                <dt class="col-xs-2">Answerer</dt>
-                <dd v-if="question.answerer" class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
-              </dt>
-              <dt class="row">
-                <dt class="col-xs-2">Answer</dt>
-                <dd class="col-xs-10">{{ question.answer }}</dd>
-              </dt>
-            </div>
+    <div class="row">
+      <div v-for="question in questions" class="col-md-6">
+        <div class="panel" :class="question.answer ? 'panel-success' : 'panel-primary'">
+          <div class="panel-body">
+            <dt class="row">
+              <dt class="col-xs-2">Questioner</dt>
+              <dd class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
+            </dt>
+            <dt class="row">
+              <dt class="col-xs-2">Question</dt>
+              <dd class="col-xs-10">{{ question.query }}</dd>
+            </dt>
+            <dt class="row">
+              <dt class="col-xs-2">Answerer</dt>
+              <dd v-if="question.answerer" class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
+            </dt>
+            <dt class="row">
+              <dt class="col-xs-2">Answer</dt>
+              <dd class="col-xs-10">{{ question.answer }}</dd>
+            </dt>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="panel panel-primary">
-            <div class="panel-body">
-              <div class="col-xs-10">
-                <textarea class="form-control" v-model="query" placeholder="New question..."></textarea>
-              </div>
-              <div class="col-xs-2">
-                <button v-if="!sendingQuestion" @click="sendQuestion" class="btn btn-primary" style="width: 100%;">Send</button>
-              </div>
+      </div>
+      <div class="col-md-6">
+        <div class="panel panel-primary">
+          <div class="panel-body">
+            <div class="col-xs-10">
+              <textarea class="form-control" v-model="query" placeholder="New question..."></textarea>
+            </div>
+            <div class="col-xs-2">
+              <button v-if="!sendingQuestion" @click="sendQuestion" class="btn btn-primary" style="width: 100%;">Send</button>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div v-else>
-      <p>Loading ...</p>
     </div>
   </div>
 </template>
@@ -56,28 +51,16 @@ const api = axios.create({
 
 export default {
   props: [
-    'me'
+    'me',
+    'questions'
   ],
   data () {
     return {
-      loading: true,
       sendingQuestion: false,
-      questions: [],
       query: ""
     }
   },
-  created () {
-    this.fetchQuestions()
-  },
   methods: {
-    fetchQuestions () {
-      api.get(`${process.env.API_URL_PREFIX}/questions`)
-      .then(res => res.data)
-      .then((data) => {
-        this.questions.splice(0, data.length, ...data)
-        this.loading = false
-      })
-    },
     sendQuestion () {
       this.sendingQuestion = true
       api.post(`${process.env.API_URL_PREFIX}/questions`, {
@@ -87,8 +70,8 @@ export default {
       .then(() => {
         this.query = ""
         this.$emit('success', 'Your question has been sent.')
+        this.$emit('reloadQuestions')
       })
-      .then(() => this.fetchQuestions())
       .catch((err) => {
         this.$emit('error', `Message: ${err.response.data.message}`)
       })
