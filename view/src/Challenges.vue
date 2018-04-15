@@ -12,16 +12,16 @@
               </div>
               <div class="panel-body">
                 <dl class="row">
-                  <dt class="col-xs-4">Author</dt>
-                  <dd class="col-xs-8"><router-link :to="{name: 'user', params: {id: challenge.author.id}}"><img :src="challenge.author.icon_url" class="icon">{{ challenge.author.name }}<small v-if="challenge.author.twitter_screen_name">(@{{ challenge.author.twitter_screen_name }})</small></router-link></dd>
+                  <dt class="col-xs-4 col-a-left">Author</dt>
+                  <dd class="col-xs-8 col-a-right"><router-link :to="{name: 'user', params: {id: challenge.author.id}}"><img :src="challenge.author.icon_url" class="icon">{{ challenge.author.name }}<small v-if="challenge.author.twitter_screen_name">(@{{ challenge.author.twitter_screen_name }})</small></router-link></dd>
                 </dl>
                 <dl class="row">
-                  <dt class="col-xs-4">Score</dt>
-                  <dd class="col-xs-8">{{ challenge.score }}</dd>
+                  <dt class="col-xs-4 col-a-left">Score</dt>
+                  <dd class="col-xs-8 col-a-right">{{ challenge.score }}</dd>
                 </dl>
                 <dl class="row">
-                  <dt class="col-xs-4">Solved By</dt>
-                  <dd class="col-xs-8">{{ challenge.who_solved.length }}</dd>
+                  <dt class="col-xs-4 col-a-left">Solved By</dt>
+                  <dd class="col-xs-8 col-a-right">{{ challenge.who_solved.length }}</dd>
                 </dl>
               </div>
             </div>
