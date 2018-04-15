@@ -17,7 +17,7 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-xs-4">Score</dt>
-                  <dd class="col-xs-8">{{ challenge.score - challenge.hints.filter(hint => hint.caption).map(hint => hint.penalty).reduce((a, c) => (a + c)) }}</dd>
+                  <dd class="col-xs-8">{{ challenge.score - challenge.hints.filter(hint => hint.caption).map(hint => hint.penalty).reduce((a, c) => (a + c), 0) }}</dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-xs-4">Solved By</dt>
