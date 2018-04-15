@@ -9,6 +9,7 @@ import Challenges from './Challenges.vue'
 import Challenge from './Challenge.vue'
 import Ranking from './Ranking.vue'
 import User from './User.vue'
+import Questions from './Questions.vue'
 
 import Modal from './Modal.vue'
 import ErrorModal from './ErrorModal.vue'
@@ -55,6 +56,12 @@ const router = new Router({
       name: 'user',
       props: true,
       component: User
+    },
+    {
+      path: '/questions',
+      name: 'questions',
+      props: true,
+      component: Questions
     }
   ],
   linkActiveClass: 'active'

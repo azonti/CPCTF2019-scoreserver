@@ -112,7 +112,11 @@ func PostQuestion(c echo.Context) error {
 	if me.ID != req.Questioner.ID && !me.IsAuthor {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the questioner is not you"))
 	}
-	question, err := model.NewQuestion(req.Questioner.ID, req.Challenge.ID, req.Query)
+	var challengeID = ""
+	if req.Challenge != nil {
+		challengeID = req.Challenge.ID
+	}
+	question, err := model.NewQuestion(req.Questioner.ID, challengeID, req.Query)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

@@ -194,7 +194,7 @@ func CheckCode(c echo.Context) error {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
 			}
 			if strings.HasPrefix(openedHintID, partedCode[1]+":") {
-				cnt += 1
+				cnt++
 			}
 		}
 		if strconv.Itoa(cnt) != partedCode[2] {
