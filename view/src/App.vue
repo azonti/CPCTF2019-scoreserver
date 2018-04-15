@@ -90,4 +90,7 @@ export default {
 </script>
 
 <style>
+.container {
+  padding-bottom: 72px;
+}
 </style>

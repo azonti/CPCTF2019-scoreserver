@@ -5,7 +5,7 @@
       <div v-for="challenges in genre2Challenges">
         <h1>{{ challenges[0].genre }}</h1>
         <div class="row">
-          <div v-for="challenge in challenges" class="col-md-4">
+          <div v-for="challenge in sort(challenges)" class="col-md-4">
             <div class="panel" :class="challenge.who_solved.map(user => user.id).includes(me.id) ? 'panel-success' : 'panel-primary'">
               <div class="panel-heading">
                 <h2 class="panel-title"><router-link :to="{name: 'challenge', params: {id: challenge.id}}">{{ challenge.name }}</router-link></h2>
@@ -69,6 +69,9 @@ export default {
       .then(() => {
         this.loading = false
       })
+    },
+    sort (challenges) {
+      return [].concat(challenges).sort((a, b) => a.score > b.score)
     }
   }
 }

@@ -54,7 +54,7 @@
               </div>
             </div>
           </div>
-          <div class="row" style="margin-top: 20px;">
+          <div class="row" style="margin-top: 20px; margin-bottom: 120px;">
             <div class="col-md-10">
               <input class="form-control" v-model="flag" placeholder="FLAG{FL4G_1S_H3RE}">
             </div>

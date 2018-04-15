@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div class="modal" v-show="show" style="display: block;">
+    <div class="modal modal-background" v-show="show" style="display: block;" @click="$emit('close')">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -44,4 +44,11 @@ export default {
   opacity: 0;
 }
 
+.modal-content {
+  border-radius: 8px;
+}
+
+.modal-background{
+  background-color: rgba(0, 0, 0, 0.8);
+}
 </style>
