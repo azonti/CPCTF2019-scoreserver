@@ -2,7 +2,7 @@
   <div>
     <div v-if="challenge.id">
       <vue-headful :title="`${challenge.name} | CPCTF2018`" />
-      <h1>{{ challenge.name }}</h1>
+      <h1 class="chal-title">{{ challenge.name }}</h1>
       <div class="row">
         <div class="col-md-4">
           <dl class="row">
