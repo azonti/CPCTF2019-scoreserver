@@ -1,11 +1,11 @@
 <template>
   <div>
     <modal
-      v-for="(success, i) in successes"
+      v-for="(body, i) in bodies"
       :key="i"
       :show="show[i]"
       @close="$set(show, i, false)"
-      :modal="{ title: 'Success', body: success }"
+      :modal="{ title: title, bodyClass: bodyClass, body: body }"
     />
   </div>
 </template>
@@ -13,7 +13,9 @@
 <script>
 export default {
   props: [
-    'successes'
+    'title',
+    'bodyClass',
+    'bodies'
   ],
   data () {
     return {
@@ -21,7 +23,7 @@ export default {
     }
   },
   watch: {
-    successes (val) {
+    bodies (val) {
       while (this.show.length < val.length) {
         this.show.push(true)
       }

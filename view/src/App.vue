@@ -7,7 +7,7 @@
       <li class="dropdown">
         <a :aria-expanded="showDropdown ? 'true' : 'false'" class="dropdown-toggle" @click.prevent="showDropdown = !showDropdown" href="#">Me <span class="caret"></span></a>
         <ul class="dropdown-menu" v-bind:style="{ display: showDropdown ? 'block' : '' }">
-          <router-link tag="li" v-if="me.id" :to="{name: 'user', params: {id: me.id}}" @click.native="showDropdown = false"><a><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></a></router-link>
+          <router-link tag="li" v-if="me.id" :to="{name: 'user', params: {id: me.id}}" exact @click.native="showDropdown = false"><a><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></a></router-link>
           <li v-else><a @click.prevent="showDropdown = false" href="#"><img :src="me.icon_url" class="icon big">{{ me.name }}</a></li>
           <li class="divider" v-if="me.web_shell_pass"></li>
           <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.site/`">Open webshell</a></li>
@@ -29,10 +29,9 @@
       @reloadQuestions="fetchQuestions"
       @error="(error) => { errors.push(error); }"
       @success="(success) => { successes.push(success); }"
-    >
-    </router-view>
-    <error-modal :errors="errors" />
-    <success-modal :successes="successes" />
+    />
+    <ez-modals title="Error"  bodyClass="text-danger" :bodies="errors" />
+    <ez-modals title="Success" :bodies="successes" />
   </div>
 </template>
 
@@ -62,27 +61,37 @@ export default {
   },
   created () {
     this.fetchMe()
-    this.fetchQuestions(true)
+    this.fetchQuestions(() => {}, () => {}, true)
     setInterval(this.fetchQuestions, 60000)
   },
   methods: {
-    fetchQuestions (first) {
-      api.get(`${process.env.API_URL_PREFIX}/questions`)
-      .then(res => res.data)
-      .then((data) => {
+    fetchQuestions (resolve, reject, first) {
+      return api.get(`${process.env.API_URL_PREFIX}/questions`)
+      .then(res => res.data).then((data) => {
         if (!first) {
           this.newAnswer = this.questions.filter(question => question.answer).length !== data.filter(datum => datum.answer).length
         }
         this.questions.splice(0, data.length, ...data)
       })
+      .then(() => {
+        (resolve || (() => {}))()
+      })
+      .catch((err) => {
+        (reject || ((err) => { throw err }))(err)
+      })
     },
-    fetchMe () {
-      api.get(`${process.env.API_URL_PREFIX}/users/me`)
-      .then(res => res.data)
-      .then((data) => {
+    fetchMe (resolve, reject) {
+      return api.get(`${process.env.API_URL_PREFIX}/users/me`)
+      .then(res => res.data).then((data) => {
         for (const key in data) {
           this.$set(this.me, key, data[key])
         }
+      })
+      .then(() => {
+        (resolve || (() => {}))()
+      })
+      .catch((err) => {
+        (reject || ((err) => { throw err }))(err)
       })
     }
   }

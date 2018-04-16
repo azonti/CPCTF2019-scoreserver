@@ -46,7 +46,7 @@
       </div>
     </div>
     <div v-else>
-      <p class="loading">Loading...</p>
+      <p class="loading">Loading ...</p>
     </div>
     <modal
       :show="recreateContainerWarn"
@@ -95,54 +95,53 @@ export default {
   },
   methods: {
     fetchUser () {
-      Promise.all([
+      return Promise.all([
         api.get(`${process.env.API_URL_PREFIX}/users/${this.id}`)
-        .then(res => res.data)
-        .then((data) => {
+        .then(res => res.data).then((data) => {
           for (const key in data) {
             this.$set(this.user, key, data[key])
           }
         }),
         api.get(`${process.env.API_URL_PREFIX}/users/${this.id}/solved`)
-        .then(res => res.data)
-        .then((data) => {
+        .then(res => res.data).then((data) => {
           this.solved.splice(0, data.length, ...data)
         })
       ])
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
     },
     sendCode () {
       this.sendingCode = true
-      api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: this.code })
-      .then(() => {
-        this.$emit('reloadMe')
-      })
-      .then(() => this.fetchUser())
+      return api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: this.code })
       .then(() => {
         this.$emit('success', 'Your code has been activated.')
       })
+      .then(() => Promise.all([
+        new Promise((resolve) => { this.$emit('reloadMe', resolve, resolve) }),
+        this.fetchUser()
+      ]))
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.sendingCode = false
       })
     },
     recreateContainer () {
       this.recreatingContainer = true
-      api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: 'rwsc' })
-      .then(() => {
-        this.$emit('reloadMe')
-      })
+      return api.post(`${process.env.API_URL_PREFIX}/users/me`, { code: 'rwsc' })
       .then(() => {
         this.$emit('success', 'Your container has been recreated.')
       })
+      .then(() => Promise.all([
+        new Promise((resolve) => { this.$emit('reloadMe', resolve, resolve) }),
+        this.fetchUser()
+      ]))
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.recreatingContainer = false
       })
     }

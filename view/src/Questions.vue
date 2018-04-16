@@ -77,25 +77,25 @@ export default {
   methods: {
     sendQuestion () {
       this.sendingQuestion = true
-      api.post(`${process.env.API_URL_PREFIX}/questions`, {
+      return api.post(`${process.env.API_URL_PREFIX}/questions`, {
         questioner: this.me,
         query: this.query
       })
       .then(() => {
         this.query = ""
         this.$emit('success', 'Your question has been sent.')
-        this.$emit('reloadQuestions')
       })
+      .then(() => new Promise((resolve) => { this.$emit('reloadQuestions', resolve, resolve) }))
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.sendingQuestion = false
       })
     },
     answerQuestion () {
       this.answeringQuestion = true
-      api.put(`${process.env.API_URL_PREFIX}/questions/${this.questionToAnswer.id}`, {
+      return api.put(`${process.env.API_URL_PREFIX}/questions/${this.questionToAnswer.id}`, {
         questioner: this.questionToAnswer.questioner,
         answerer: this.me,
         query: this.questionToAnswer.query,
@@ -103,12 +103,12 @@ export default {
       })
       .then(() => {
         this.$emit('success', 'Your answer has been sent.')
-        this.$emit('reloadQuestions')
       })
+      .then(() => new Promise((resolve) => { this.$emit('reloadQuestions', resolve, resolve) }))
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.answeringQuestion = false
       })
     }

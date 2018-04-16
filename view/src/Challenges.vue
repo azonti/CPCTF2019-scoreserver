@@ -56,17 +56,16 @@ export default {
   },
   methods: {
     fetchChallenges () {
-      api.get(`${process.env.API_URL_PREFIX}/challenges`)
-      .then(res => res.data)
-      .then((data) => {
+      return api.get(`${process.env.API_URL_PREFIX}/challenges`)
+      .then(res => res.data).then((data) => {
         for (const challenge of data) {
           this.$set(this.genre2Challenges, challenge.genre, (this.genre2Challenges[challenge.genre] || []).concat(challenge))
         }
       })
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.loading = false
       })
     },

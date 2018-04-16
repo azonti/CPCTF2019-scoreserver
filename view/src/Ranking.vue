@@ -22,7 +22,7 @@
       </table>
     </div>
     <div v-else>
-      <p class="loading">Loading...</p>
+      <p class="loading">Loading ...</p>
     </div>
   </div>
 </template>
@@ -48,16 +48,15 @@ export default {
   },
   methods: {
     fetchUsers () {
-      api.get(`${process.env.API_URL_PREFIX}/users`)
-      .then(res => res.data)
-      .then((data) => {
+      return api.get(`${process.env.API_URL_PREFIX}/users`)
+      .then(res => res.data).then((data) => {
         const sorted = data.filter(a => !a.is_author).sort((a, b) => (b.score - a.score))
         this.users.splice(0, sorted.length, ...sorted)
       })
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.loading = false
       })
     }

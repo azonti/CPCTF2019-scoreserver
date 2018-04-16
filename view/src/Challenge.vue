@@ -66,7 +66,7 @@
       </div>
     </div>
     <div v-else>
-      <p class="loading">Loading...</p>
+      <p class="loading">Loading ...</p>
     </div>
     <modal
       :show="openHintWarn"
@@ -108,9 +108,8 @@ export default {
   },
   methods: {
     fetchChallenge () {
-      api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
-      .then(res => res.data)
-      .then((data) => {
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
+      .then(res => res.data).then((data) => {
         for (const key in data) {
           this.$set(this.challenge, key, data[key])
         }
@@ -118,12 +117,12 @@ export default {
         this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
       })
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
     },
     checkFlag () {
       this.checkingFlag = true
-      api.post(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, {
+      return api.post(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, {
         flag: this.flag
       })
       .then(() => {
@@ -131,22 +130,22 @@ export default {
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.checkingFlag = false
       })
     },
     openHint () {
       this.openingHint = true
-      api.post(`${process.env.API_URL_PREFIX}/users/me`, {
+      return api.post(`${process.env.API_URL_PREFIX}/users/me`, {
         code: `hint:${this.hintToOpen.id}`
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {
-        this.$emit('error', `Message: ${err.response.data.message}`)
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .then(() => {
+      .finally(() => {
         this.openingHint = false
       })
     }
