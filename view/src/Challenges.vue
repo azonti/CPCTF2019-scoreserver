@@ -70,7 +70,7 @@ export default {
       })
     },
     sort (challenges) {
-      return [].concat(challenges).sort((a, b) => a.score > b.score)
+      return [].concat(challenges).sort((a, b) => a.score - b.score)
     }
   }
 }
