@@ -30,7 +30,7 @@
       </div>
     </div>
     <div v-else>
-      <p>Loading ...</p>
+      <p class="loading">Loading ...</p>
     </div>
   </div>
 </template>

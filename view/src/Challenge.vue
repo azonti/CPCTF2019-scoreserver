@@ -7,7 +7,7 @@
         <div class="col-md-4">
           <dl class="row">
             <dt class="col-xs-4">Genre</dt>
-            <dd class="col-xs-8">{{ challenge.genre }}</dd>
+            <dd class="col-xs-8" style="line-height:18px">{{ challenge.genre }}</dd>
           </dl>
           <dl class="row">
             <dt class="col-xs-4">Author</dt>
@@ -15,7 +15,7 @@
           </dl>
           <dl class="row">
             <dt class="col-xs-4">Score</dt>
-            <dd class="col-xs-8">{{ challenge.score }}</dd>
+            <dd class="col-xs-8 chal-score">{{ challenge.score }}</dd>
           </dl>
           <dl class="row">
             <dt class="col-xs-4">Solved By</dt>
@@ -66,7 +66,7 @@
       </div>
     </div>
     <div v-else>
-      <p>Loading...</p>
+      <p class="loading">Loading...</p>
     </div>
     <modal
       :show="openHintWarn"

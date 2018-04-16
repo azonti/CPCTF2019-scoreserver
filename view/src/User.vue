@@ -23,7 +23,7 @@
               <dt class="col-xs-4">Solved</dt>
               <dd class="col-xs-8">
                 <ul class="list-unstyled">
-                  <li v-for="_solved in solved">{{ _solved.name }}</li>
+                  <li class="solved-chals" v-for="_solved in solved">{{ _solved.name }}</li>
                 </ul>
               </dd>
             </dl>
@@ -46,7 +46,7 @@
       </div>
     </div>
     <div v-else>
-      <p>Loading...</p>
+      <p class="loading">Loading...</p>
     </div>
     <modal
       :show="recreateContainerWarn"
