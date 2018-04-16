@@ -1,48 +1,48 @@
 <template>
   <div>
     <vue-headful title="Questions | CPCTF2018" />
-    <div class="row">
-      <div v-for="question in questions" class="col-md-6">
+    <div class="row questions">
+      <div v-for="question in questions" class="col-md-6 question-panel">
         <div class="panel" :class="question.answer ? 'panel-success' : 'panel-primary'">
           <div class="panel-body">
             <div v-if="question.questioner.id !== 'nobody'">
               <dl class="row">
-                <dt class="col-xs-2">Questioner</dt>
-                <dd class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
+                <dt class="col-xs-3">Questioner</dt>
+                <dd class="col-xs-9"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
               </dl>
               <dl class="row">
-                <dt class="col-xs-2">Question</dt>
-                <dd class="col-xs-10">{{ question.query }}</dd>
+                <dt class="col-xs-3">Question</dt>
+                <dd class="col-xs-9">{{ question.query }}</dd>
               </dl>
             </div>
             <div v-if="question.answer || !me.is_author">
               <dl class="row">
-                <dt class="col-xs-2">Answerer</dt>
-                <dd v-if="question.answerer" class="col-xs-10"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
+                <dt class="col-xs-3">Respondent</dt>
+                <dd v-if="question.answerer" class="col-xs-9"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
               </dl>
               <dl class="row">
-                <dt class="col-xs-2">Answer</dt>
-                <dd class="col-xs-10">{{ question.answer }}</dd>
+                <dt class="col-xs-3">Response</dt>
+                <dd class="col-xs-9">{{ question.answer }}</dd>
               </dl>
             </div>
             <div v-else>
-              <div class="col-xs-10">
+              <div class="col-xs-9">
                 <textarea class="form-control" v-model="question._answer" placeholder="Answer..."></textarea>
               </div>
-              <div class="col-xs-2">
+              <div class="col-xs-3">
                 <button v-if="!answeringQuestion" @click="questionToAnswer = question; answerQuestion()" class="btn btn-primary" style="width: 100%;">Send</button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-6 question-panel new-question">
         <div class="panel panel-primary">
           <div class="panel-body">
-            <div class="col-xs-10">
+            <div class="col-xs-10 question-form">
               <textarea class="form-control" v-model="query" placeholder="New question..."></textarea>
             </div>
-            <div class="col-xs-2">
+            <div class="col-xs-2 question-send">
               <button v-if="!sendingQuestion" @click="sendQuestion" class="btn btn-primary" style="width: 100%;">Send</button>
             </div>
           </div>

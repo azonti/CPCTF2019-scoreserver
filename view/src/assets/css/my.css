@@ -43,6 +43,9 @@ img.icon.big {
   font-size: 15px;
 }
 
+code {
+  font-family: 'Oxygen Mono', 'Yu Gothic', monospace;
+}
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
   font-family: 'Oxygen Mono', 'Yu Gothic', monospace;
 }
@@ -90,7 +93,16 @@ a:hover {
   line-height: 20px;
 }
 .btn-primary {
-  background-color: #ddd;
+  background-color: #eee;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #ccc;
+}
+.btn-default {
+  color: #eee;
+}
+.btn-default:hover, .btn-default:focusi, .btn-default:active {
+  color: #ccc;
 }
 .solved-chals {
   height: 20px;
@@ -105,9 +117,36 @@ a:hover {
   color: #555;
 }
 
+.questions {
+  margin-top: 20px;
+}
+.question-panel>.panel-primary {
+  border-color: #ccc;
+}
+.question-panel>.panel>.panel-body {
+  padding: 15px 15px 0px 15px;
+}
+.question-panel.new-question>.panel>.panel-body {
+  padding: 10px 10px 11px 10px;
+}
+
 .loading {
   margin-left: 10px;
   margin-top: 10px;
+}
+
+.form-control {
+  color: #0c0;
+}
+
+.question-form {
+  padding-right: 0px;
+}
+.question-form>textarea.form-control {
+  height: 100px;
+}
+.question-send {
+  padding-top: 1px;
 }
 
 .panel-PPC      >.panel-body, .panel-success.panel-PPC      >.panel-heading a, .panel-PPC      >.panel-body a, .chal-name-PPC       { color: rgb(253, 105, 64);  }
