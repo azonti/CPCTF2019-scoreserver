@@ -7,8 +7,8 @@
         <div class="col-md-4">
           <img :src="user.icon_url" style="width: 80%; height: 80%; margin-bottom: 5px">
           <p>
-            <span class="badge" v-if="user.is_author">Author</span>
-            <span class="badge" v-if="user.is_onsite">Onsite</span>
+            <span class="badge" v-if="user.is_author">Organizer</span>
+            <span class="badge" v-if="!user.is_author && user.is_onsite">Onsite Participant</span>
           </p>
           <dl class="row">
             <dt class="col-xs-4">Twitter</dt>

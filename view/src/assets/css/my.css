@@ -155,7 +155,7 @@ a:hover, a:focus {
   padding-top: 1px;
 }
 
-.panel a { color: inherit; }
+.panel a, .chal-meta a { color: inherit; }
 
 .panel-PPC      >.panel-body, .panel-success.panel-PPC      >.panel-heading, .chal-name-PPC       { color: rgb(253, 105, 64);  }
 .panel-Forensics>.panel-body, .panel-success.panel-Forensics>.panel-heading, .chal-name-Forensics { color: rgb(209, 5,   245); }

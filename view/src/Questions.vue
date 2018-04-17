@@ -7,27 +7,27 @@
           <div class="panel-body">
             <div v-if="question.questioner">
               <dl class="row">
-                <dt class="col-xs-3">Questioner</dt>
+                <dt class="col-xs-3">Question</dt>
                 <dd class="col-xs-9"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
               </dl>
             </div>
             <div v-else>
               <dl class="row">
-                <dt class="col-xs-3">Questioner</dt>
-                <dd class="col-xs-9">***CENSORED***</dd>
+                <dt class="col-xs-3">Question</dt>
+                <dd class="col-xs-9"><em>*** CENSORED ***</em></dd>
               </dl>
             </div>
             <dl class="row">
-              <dt class="col-xs-3">Question</dt>
+              <dt class="col-xs-3"></dt>
               <dd class="col-xs-9">{{ question.query }}</dd>
             </dl>
             <div v-if="question.answer || !me.is_author">
               <dl class="row">
-                <dt class="col-xs-3">Respondent</dt>
+                <dt class="col-xs-3">Response</dt>
                 <dd v-if="question.answerer" class="col-xs-9"><router-link :to="{name: 'user', params: {id: question.answerer.id}}"><img :src="question.answerer.icon_url" class="icon">{{ question.answerer.name }}<small v-if="question.answerer.twitter_screen_name">(@{{ question.answerer.twitter_screen_name }})</small></router-link></dd>
               </dl>
               <dl class="row">
-                <dt class="col-xs-3">Response</dt>
+                <dt class="col-xs-3"></dt>
                 <dd class="col-xs-9">{{ question.answer }}</dd>
               </dl>
             </div>
