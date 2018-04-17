@@ -40,5 +40,6 @@ func main() {
 	g.POST("/users/me", router.CheckCode, router.EnsureIExist)
 	g.GET("/users/:userID/solved", router.GetSolvedChallenges)
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
+	g.GET("/users/:userID/lastseen", router.GetLastSeenChallenge)
 	e.Logger.Fatal(e.Start(":" + os.Getenv("BIND_PORT")))
 }

@@ -28,6 +28,7 @@ type User struct {
 	IsOnsite              bool          `bson:"is_onsite"`
 	OpenedHintIDs         []string      `bson:"opened_hint_ids"`
 	WebShellPass          string        `bson:"web_shell_pass"`
+	LastSeenChallengeID   string        `bson:"last_seen_challenge_id"`
 	LastSolvedChallengeID string        `bson:"last_solved_challenge_id"`
 	LastSolvedTime        time.Time     `bson:"last_solved_time"`
 }
@@ -231,6 +232,15 @@ func (user *User) setLastSolvedChallengeID(challengeID string) error {
 		return fmt.Errorf("failed to update the user record: %v", err)
 	}
 	user.LastSolvedChallengeID, user.LastSolvedTime = challengeID, now
+	return nil
+}
+
+//SetLastSeenChallengeID Set the Challenge's ID which the User Saw Last
+func (user *User) SetLastSeenChallengeID(challengeID string) error {
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"last_seen_challenge_id": challengeID}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.LastSeenChallengeID = challengeID
 	return nil
 }
 

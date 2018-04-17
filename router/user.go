@@ -260,3 +260,28 @@ func GetLastSolvedChallenge(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderLastModified, user.LastSolvedTime.UTC().Format(http.TimeFormat))
 	return c.JSON(http.StatusOK, json)
 }
+
+//GetLastSeenChallenge the Method Handler of "GET /user/:userID/lastseen"
+func GetLastSeenChallenge(c echo.Context) error {
+	userID := c.Param("userID")
+	user, err := model.GetUserByID(userID, false)
+	if err != nil {
+		if err == model.ErrUserNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
+	}
+	if user.LastSeenChallengeID == "" {
+		return c.NoContent(http.StatusNoContent)
+	}
+	challenge, err := model.GetChallengeByID(user.LastSeenChallengeID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the last seen challenge record: %v", err))
+	}
+	me := c.Get("me").(*model.User)
+	json, err := newChallengeJSON(me, challenge)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the last seen challenge record: %v", err))
+	}
+	return c.JSON(http.StatusOK, json)
+}

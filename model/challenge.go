@@ -10,17 +10,18 @@ import (
 
 //Challenge a Challenge Record
 type Challenge struct {
-	ObjectID     bson.ObjectId `bson:"_id"`
-	ID           string        `bson:"id"`
-	Genre        string        `bson:"genre"`
-	Name         string        `bson:"name"`
-	AuthorID     string        `bson:"author_id"`
-	Score        int           `bson:"score"`
-	Caption      string        `bson:"caption"`
-	Hints        []*Hint       `bson:"hints"`
-	Flag         string        `bson:"flag"`
-	Answer       string        `bson:"answer"`
-	WhoSolvedIDs []string      `bson:"who_solved_ids"`
+	ObjectID         bson.ObjectId `bson:"_id"`
+	ID               string        `bson:"id"`
+	Genre            string        `bson:"genre"`
+	Name             string        `bson:"name"`
+	AuthorID         string        `bson:"author_id"`
+	Score            int           `bson:"score"`
+	Caption          string        `bson:"caption"`
+	Hints            []*Hint       `bson:"hints"`
+	Flag             string        `bson:"flag"`
+	Answer           string        `bson:"answer"`
+	WhoSolvedIDs     []string      `bson:"who_solved_ids"`
+	WhoChallengedIDs []string      `bson:"who_challenged_ids"`
 }
 
 //Hint a Hint Record
@@ -120,5 +121,15 @@ func (challenge *Challenge) AddWhoSolved(user *User) error {
 		return fmt.Errorf("failed to set the user's last solved challenge ID: %v", err)
 	}
 	challenge.WhoSolvedIDs = newWhoSolvedIDs
+	return nil
+}
+
+//AddWhoChallenged Add the User to the List of Who Challenged
+func (challenge *Challenge) AddWhoChallenged(user *User) error {
+	newWhoChallengedIDs := append(challenge.WhoChallengedIDs, user.ID)
+	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_challenged_ids": newWhoChallengedIDs}}); err != nil {
+		return fmt.Errorf("failed to update the challenge record: %v", err)
+	}
+	challenge.WhoChallengedIDs = newWhoChallengedIDs
 	return nil
 }
