@@ -17,6 +17,12 @@
   version = "v0.4.0"
 
 [[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/globalsign/mgo"
   packages = [
@@ -41,16 +47,27 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/labstack/echo"
+  name = "github.com/gorilla/websocket"
   packages = ["."]
+  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
+  version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/labstack/echo"
+  packages = [
+    ".",
+    "middleware"
+  ]
   revision = "a5d81b8d4a627f3f49dcb3164ef2bb5239682227"
   version = "3.3.4"
 
 [[projects]]
   name = "github.com/labstack/gommon"
   packages = [
+    "bytes",
     "color",
-    "log"
+    "log",
+    "random"
   ]
   revision = "6fe1405d73ec4bd4cd8a4ac8e2a2b2bf95d03954"
   version = "0.2.4"
@@ -72,6 +89,12 @@
   packages = ["."]
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
   version = "v1.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/trevex/golem"
+  packages = ["."]
+  revision = "8705b20d71c31ef440a815f75585e75fc04cdd76"
 
 [[projects]]
   branch = "master"
@@ -106,7 +129,8 @@
     "internal/timeseries",
     "lex/httplex",
     "publicsuffix",
-    "trace"
+    "trace",
+    "websocket"
   ]
   revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
 
@@ -206,6 +230,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b1dfd535242a70d719cb16fbf65623c002be21c27b3806da7ea52cc8bdc470f1"
+  inputs-digest = "da1bfcea6df0d8eb2d79214ac1610401371cb187e099810d12e27dcd83f49252"
   solver-name = "gps-cdcl"
   solver-version = 1
