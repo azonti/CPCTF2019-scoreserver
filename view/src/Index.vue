@@ -1,11 +1,22 @@
 <template>
   <div>
-    <vue-headful title="Index | CPCTF2018" />
+    <vue-headful title="CPCTF2018" />
+    <markdown-container :body="body" />
   </div>
 </template>
 
 <script>
-</script>
+import axios from 'axios'
+import md from './index.md'
 
-<style>
-</style>
+export default {
+  data () {
+    return {
+      body: "loading ..."
+    }
+  },
+  created () {
+    axios.get(md).then(r => this.body = r.data)
+  }
+}
+</script>
