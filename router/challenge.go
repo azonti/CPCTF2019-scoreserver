@@ -12,17 +12,16 @@ import (
 )
 
 type challengeJSON struct {
-	ID            string      `json:"id"`
-	Genre         string      `json:"genre"`
-	Name          string      `json:"name"`
-	Author        *userJSON   `json:"author"`
-	Score         int         `json:"score"`
-	Caption       string      `json:"caption"`
-	Hints         []*hintJSON `json:"hints"`
-	Flag          string      `json:"flag"`
-	Answer        string      `json:"answer"`
-	WhoSolved     []*userJSON `json:"who_solved"`
-	WhoChallenged []*userJSON `json:"who_challenged"`
+	ID        string      `json:"id"`
+	Genre     string      `json:"genre"`
+	Name      string      `json:"name"`
+	Author    *userJSON   `json:"author"`
+	Score     int         `json:"score"`
+	Caption   string      `json:"caption"`
+	Hints     []*hintJSON `json:"hints"`
+	Flag      string      `json:"flag"`
+	Answer    string      `json:"answer"`
+	WhoSolved []*userJSON `json:"who_solved"`
 }
 
 type hintJSON struct {
@@ -76,31 +75,18 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		}
 		whoSolvedJSONs[i] = whoSolvedJSON
 	}
-	whoChallengedJSONs := make([]*userJSON, len(challenge.WhoChallengedIDs))
-	for i := 0; i < len(challenge.WhoChallengedIDs); i++ {
-		whoChallenged, err := model.GetUserByID(challenge.WhoChallengedIDs[i], false)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get who challenged record: %v", err)
-		}
-		whoChallengedJSON, err := newUserJSON(me, whoChallenged)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse who challenged record: %v", err)
-		}
-		whoChallengedJSONs[i] = whoChallengedJSON
-	}
 	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
 	json := &challengeJSON{
-		ID:            challenge.ID,
-		Genre:         challenge.Genre,
-		Name:          challenge.Name,
-		Author:        authorJSON,
-		Score:         score,
-		Caption:       challenge.Caption,
-		Hints:         hintJSONs,
-		Flag:          map[bool]string{true: challenge.Flag}[canISeeAnswer],
-		Answer:        map[bool]string{true: challenge.Answer}[canISeeAnswer],
-		WhoSolved:     whoSolvedJSONs,
-		WhoChallenged: whoChallengedJSONs,
+		ID:        challenge.ID,
+		Genre:     challenge.Genre,
+		Name:      challenge.Name,
+		Author:    authorJSON,
+		Score:     score,
+		Caption:   challenge.Caption,
+		Hints:     hintJSONs,
+		Flag:      map[bool]string{true: challenge.Flag}[canISeeAnswer],
+		Answer:    map[bool]string{true: challenge.Answer}[canISeeAnswer],
+		WhoSolved: whoSolvedJSONs,
 	}
 	return json, nil
 }
@@ -229,9 +215,6 @@ func CheckAnswer(c echo.Context) error {
 	}{}
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
-	}
-	if !contains(challenge.WhoChallengedIDs, me.ID) {
-		challenge.AddWhoChallenged(me)
 	}
 	if challenge.Flag != req.Flag {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the flag is wrong"))
