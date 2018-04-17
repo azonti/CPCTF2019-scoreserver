@@ -15,7 +15,7 @@ func EnsureContestStarted(next echo.HandlerFunc) echo.HandlerFunc {
 		me := c.Get("me").(*model.User)
 		if start.After(now) && !me.IsAuthor {
 			c.Response().Header().Set("Retry-After", start.UTC().Format(http.TimeFormat))
-			return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("the contest has not start yet"))
+			return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("the contest has not started yet"))
 		}
 		return next(c)
 	}

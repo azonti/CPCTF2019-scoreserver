@@ -54,12 +54,20 @@
               </div>
             </div>
           </div>
-          <div class="row" style="margin-top: 20px; margin-bottom: 120px;">
+          <div class="row" style="margin-top: 20px">
             <div class="col-md-10">
               <input class="form-control" v-model="flag" placeholder="FLAG{FL4G_1S_H3RE}">
             </div>
             <div class="col-md-2">
               <button v-if="!checkingFlag && !challenge.answer" @click="checkFlag" class="btn btn-primary" style="width: 100%;">Check</button>
+            </div>
+          </div>
+          <div v-if="!voting && challenge.answer && !voted" class="row" style="margin-top: 20px; margin-bottom: 120px;">
+            <div class="col-md-2">
+              <button @click="vote('up')" class="btn btn-primary" style="width: 100%;"><span class="glyphicon glyphicon-thumbs-up"></span></button>
+            </div>
+            <div class="col-md-2">
+              <button @click="vote('down')" class="btn btn-primary" style="width: 100%;"><span class="glyphicon glyphicon-thumbs-down"></span></button>
             </div>
           </div>
         </div>
@@ -95,7 +103,9 @@ export default {
       hintToOpen: {},
       openHintWarn: false,
       openingHint: false,
-      checkingFlag: false
+      checkingFlag: false,
+      voting: false,
+      voted: ""
     }
   },
   created () {
@@ -108,14 +118,20 @@ export default {
   },
   methods: {
     fetchChallenge () {
-      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
-      .then(res => res.data).then((data) => {
-        for (const key in data) {
-          this.$set(this.challenge, key, data[key])
-        }
-        this.flag = this.challenge.flag
-        this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
-      })
+      return Promise.all([
+        api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
+        .then(res => res.data).then((data) => {
+          for (const key in data) {
+            this.$set(this.challenge, key, data[key])
+          }
+          this.flag = this.challenge.flag
+          this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
+        }),
+        this.me ? api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
+        .then(res => res.data).then((data) => {
+          this.voted = data
+        }) : Promise.resolve()
+      ])
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
@@ -134,6 +150,22 @@ export default {
       })
       .finally(() => {
         this.checkingFlag = false
+      })
+    },
+    vote (v) {
+      this.voting = true
+      return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`, {
+        vote: v
+      })
+      .then(() => {
+        this.$emit('success', 'Voted.')
+      })
+      .then(() => this.fetchChallenge())
+      .catch((err) => {
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
+      })
+      .finally(() => {
+        this.voting = false
       })
     },
     openHint () {

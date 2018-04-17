@@ -133,3 +133,22 @@ func (challenge *Challenge) AddWhoChallenged(user *User) error {
 	challenge.WhoChallengedIDs = newWhoChallengedIDs
 	return nil
 }
+
+//GetVote Get the User's Vote for the Challenge
+func (challenge *Challenge) GetVote(userID string) (string, error) {
+	vote := &struct {
+		vote string `bson:"vote"`
+	}{}
+	if err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).One(vote); err != nil {
+		return "", err
+	}
+	return vote.vote, nil
+}
+
+//PutVote Put the User's Vote for the Challenge
+func (challenge *Challenge) PutVote(userID string, vote string) error {
+	if err := db.C("vote").Update(bson.M{"challenge_id": challenge.ID, "user_id": userID}, bson.M{"$set": bson.M{"vote": vote}}); err != nil {
+		return err
+	}
+	return nil
+}

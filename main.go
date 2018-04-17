@@ -30,6 +30,8 @@ func main() {
 	g.PUT("/challenges/:challengeID", router.PutChallenge, router.EnsureIAmAuthor)
 	g.DELETE("/challenges/:challengeID", router.DeleteChallenge, router.EnsureIAmAuthor)
 	g.POST("/challenges/:challengeID", router.CheckAnswer, router.EnsureIExist, router.EnsureContestStarted, router.EnsureContestNotFinished)
+	g.GET("/challenges/:challengeID/votes/:userID", router.GetVote, router.EnsureIExist)
+	g.PUT("/challenges/:challengeID/votes/:userID", router.PutVote, router.EnsureIExist, router.EnsureContestStarted)
 	g.GET("/questions", router.GetQuestions)
 	g.GET("/questions/:questionID", router.GetQuestion)
 	g.POST("/questions", router.PostQuestion, router.EnsureIExist, router.EnsureContestStarted, router.EnsureContestNotFinished)
@@ -41,5 +43,6 @@ func main() {
 	g.GET("/users/:userID/solved", router.GetSolvedChallenges)
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
 	g.GET("/users/:userID/lastseen", router.GetLastSeenChallenge)
+	//g.GET("/visualizer", router.Visualizer.Handler())
 	e.Logger.Fatal(e.Start(":" + os.Getenv("BIND_PORT")))
 }

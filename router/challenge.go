@@ -241,3 +241,68 @@ func CheckAnswer(c echo.Context) error {
 	}
 	return c.Redirect(http.StatusSeeOther, os.Getenv("API_URL_PREFIX")+"/challenges/"+challengeID)
 }
+
+//GetVote the Method Handler of "GET /challenges/:challengeID/votes/:userID"
+func GetVote(c echo.Context) error {
+	challengeID := c.Param("challengeID")
+	challenge, err := model.GetChallengeByID(challengeID)
+	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
+	}
+	userID := c.Param("userID")
+	user, err := model.GetUserByID(userID, false)
+	if err != nil {
+		if err == model.ErrUserNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
+	}
+	vote, err := challenge.GetVote(user.ID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the vote record: %v", err))
+	}
+	if vote == "" {
+		return c.NoContent(http.StatusNoContent)
+	}
+	return c.String(http.StatusOK, vote)
+}
+
+//PutVote the Method Handler of "PUT /challenges/:challengeID/votes/:userID"
+func PutVote(c echo.Context) error {
+	challengeID := c.Param("challengeID")
+	challenge, err := model.GetChallengeByID(challengeID)
+	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
+	}
+	userID := c.Param("userID")
+	user, err := model.GetUserByID(userID, false)
+	if err != nil {
+		if err == model.ErrUserNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
+	}
+	req := &struct {
+		Vote string `form:"vote"`
+	}{}
+	if err := c.Bind(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
+	}
+	me := c.Get("me").(*model.User)
+	if user.ID != me.ID && !me.IsAuthor {
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you are not the user"))
+	}
+	if !contains(challenge.WhoSolvedIDs, user.ID) {
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you have not solved the challenge yet"))
+	}
+	if err := challenge.PutVote(user.ID, req.Vote); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the vote record: %v", err))
+	}
+	return c.String(http.StatusOK, req.Vote)
+}
