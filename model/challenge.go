@@ -31,6 +31,14 @@ type Hint struct {
 	Penalty int    `bson:"penalty"`
 }
 
+//Vote a Vote Record
+type Vote struct {
+	ObjectID    bson.ObjectId `bson:"_id"`
+	ChallengeID string        `bson:"challenge_id"`
+	UserID      string        `bson:"user_id"`
+	VoteStr     string        `bson:"vote"`
+}
+
 //ErrChallengeNotFound an Error due to the Challenge Not Found
 var ErrChallengeNotFound = fmt.Errorf("the challenge not found")
 
@@ -136,18 +144,39 @@ func (challenge *Challenge) AddWhoChallenged(user *User) error {
 
 //GetVote Get the User's Vote for the Challenge
 func (challenge *Challenge) GetVote(userID string) (string, error) {
-	vote := &struct {
-		vote string `bson:"vote"`
-	}{}
+	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).Count()
+	if err != nil {
+		return "", err
+	}
+	if n == 0 {
+		return "", nil
+	}
+	vote := &Vote{}
 	if err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).One(vote); err != nil {
 		return "", err
 	}
-	return vote.vote, nil
+	return vote.VoteStr, nil
 }
 
 //PutVote Put the User's Vote for the Challenge
-func (challenge *Challenge) PutVote(userID string, vote string) error {
-	if err := db.C("vote").Update(bson.M{"challenge_id": challenge.ID, "user_id": userID}, bson.M{"$set": bson.M{"vote": vote}}); err != nil {
+func (challenge *Challenge) PutVote(userID string, voteStr string) error {
+	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).Count()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		vote := &Vote{
+			ObjectID:    bson.NewObjectId(),
+			ChallengeID: challenge.ID,
+			UserID:      userID,
+			VoteStr:     voteStr,
+		}
+		if err := db.C("vote").Insert(vote); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := db.C("vote").Update(bson.M{"challenge_id": challenge.ID, "user_id": userID}, bson.M{"$set": bson.M{"vote": voteStr}}); err != nil {
 		return err
 	}
 	return nil

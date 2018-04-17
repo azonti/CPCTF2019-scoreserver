@@ -302,7 +302,7 @@ func PutVote(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you have not solved the challenge yet"))
 	}
 	if err := challenge.PutVote(user.ID, req.Vote); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the vote record: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to put the vote record: %v", err))
 	}
 	return c.String(http.StatusOK, req.Vote)
 }

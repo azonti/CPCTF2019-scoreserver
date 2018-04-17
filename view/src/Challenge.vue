@@ -114,26 +114,29 @@ export default {
   watch: {
     id (val) {
       this.fetchChallenge()
+    },
+    me (val) {
+      this.fetchVote()
     }
   },
   methods: {
     fetchChallenge () {
-      return Promise.all([
-        api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
-        .then(res => res.data).then((data) => {
-          for (const key in data) {
-            this.$set(this.challenge, key, data[key])
-          }
-          this.flag = this.challenge.flag
-          this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
-        }),
-        this.me ? api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
-        .then(res => res.data).then((data) => {
-          this.voted = data
-        }) : Promise.resolve()
-      ])
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
+      .then(res => res.data).then((data) => {
+        for (const key in data) {
+          this.$set(this.challenge, key, data[key])
+        }
+        this.flag = this.challenge.flag
+        this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
+      })
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
+      })
+    },
+    fetchVote () {
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
+      .then(res => res.data).then((data) => {
+        this.voted = data
       })
     },
     checkFlag () {
@@ -160,7 +163,7 @@ export default {
       .then(() => {
         this.$emit('success', 'Voted.')
       })
-      .then(() => this.fetchChallenge())
+      .then(() => this.fetchVote())
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
