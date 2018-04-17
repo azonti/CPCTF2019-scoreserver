@@ -5,16 +5,22 @@
       <div v-for="question in questions" class="col-md-6 question-panel">
         <div class="panel" :class="question.answer ? 'panel-success' : 'panel-primary'">
           <div class="panel-body">
-            <div v-if="question.questioner.id !== 'nobody'">
+            <div v-if="question.questioner">
               <dl class="row">
                 <dt class="col-xs-3">Questioner</dt>
                 <dd class="col-xs-9"><router-link :to="{name: 'user', params: {id: question.questioner.id}}"><img :src="question.questioner.icon_url" class="icon">{{ question.questioner.name }}<small v-if="question.questioner.twitter_screen_name">(@{{ question.questioner.twitter_screen_name }})</small></router-link></dd>
               </dl>
+            </div>
+            <div v-else>
               <dl class="row">
-                <dt class="col-xs-3">Question</dt>
-                <dd class="col-xs-9">{{ question.query }}</dd>
+                <dt class="col-xs-3">Questioner</dt>
+                <dd class="col-xs-9">***CENSORED***</dd>
               </dl>
             </div>
+            <dl class="row">
+              <dt class="col-xs-3">Question</dt>
+              <dd class="col-xs-9">{{ question.query }}</dd>
+            </dl>
             <div v-if="question.answer || !me.is_author">
               <dl class="row">
                 <dt class="col-xs-3">Respondent</dt>
@@ -31,6 +37,7 @@
               </div>
               <div class="col-xs-3">
                 <button v-if="!answeringQuestion" @click="questionToAnswer = question; answerQuestion()" class="btn btn-primary" style="width: 100%;">Send</button>
+                <button v-if="!answeringQuestion" @click="questionToAnswer = question; answerQuestion(true)" class="btn btn-primary" style="width: 100%;">Publish</button>
               </div>
             </div>
           </div>
@@ -93,10 +100,10 @@ export default {
         this.sendingQuestion = false
       })
     },
-    answerQuestion () {
+    answerQuestion (publish) {
       this.answeringQuestion = true
       return api.put(`${process.env.API_URL_PREFIX}/questions/${this.questionToAnswer.id}`, {
-        questioner: this.questionToAnswer.questioner,
+        questioner: publish ? undefined : this.questionToAnswer.questioner,
         answerer: this.me,
         query: this.questionToAnswer.query,
         answer: this.questionToAnswer._answer

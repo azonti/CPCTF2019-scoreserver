@@ -18,13 +18,17 @@ type questionJSON struct {
 }
 
 func newQuestionJSON(me *model.User, question *model.Question) (*questionJSON, error) {
-	questioner, err := model.GetUserByID(question.QuestionerID, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get the questioner record: %v", err)
-	}
-	questionerJSON, err := newUserJSON(me, questioner)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse the questioner record: %v", err)
+	var questionerJSON *userJSON
+	if question.QuestionerID != model.Nobody.ID {
+		questioner, err := model.GetUserByID(question.QuestionerID, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the questioner record: %v", err)
+		}
+		_questionerJSON, err := newUserJSON(me, questioner)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the questioner record: %v", err)
+		}
+		questionerJSON = _questionerJSON
 	}
 	var answererJSON *userJSON
 	if question.AnswererID != "" {
@@ -125,7 +129,7 @@ func PostQuestion(c echo.Context) error {
 	return c.JSON(http.StatusCreated, json)
 }
 
-//PutQuestion the Method Handler of "PUT /questions/;questionID"
+//PutQuestion the Method Handler of "PUT /questions/:questionID"
 func PutQuestion(c echo.Context) error {
 	questionID := c.Param("questionID")
 	question, err := model.GetQuestionByID(questionID)
@@ -139,11 +143,15 @@ func PutQuestion(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
+	var questionerID = model.Nobody.ID
+	if req.Questioner != nil {
+		questionerID = req.Questioner.ID
+	}
 	var challengeID = ""
 	if req.Challenge != nil {
 		challengeID = req.Challenge.ID
 	}
-	if err := question.Update(req.Questioner.ID, req.Answerer.ID, challengeID, req.Query, req.Answer); err != nil {
+	if err := question.Update(questionerID, req.Answerer.ID, challengeID, req.Query, req.Answer); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)
