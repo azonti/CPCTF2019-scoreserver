@@ -155,15 +155,17 @@ a:hover, a:focus {
   padding-top: 1px;
 }
 
-.panel-PPC      >.panel-body, .panel-success.panel-PPC      >.panel-heading a, .panel-PPC      >.panel-body a, .chal-name-PPC       { color: rgb(253, 105, 64);  }
-.panel-Forensics>.panel-body, .panel-success.panel-Forensics>.panel-heading a, .panel-Forensics>.panel-body a, .chal-name-Forensics { color: rgb(209, 5,   245); }
-.panel-Web      >.panel-body, .panel-success.panel-Web      >.panel-heading a, .panel-Web      >.panel-body a, .chal-name-Web       { color: rgb(29,  146, 241); }
-.panel-Binary   >.panel-body, .panel-success.panel-Binary   >.panel-heading a, .panel-Binary   >.panel-body a, .chal-name-Binary    { color: rgb(2,   236, 55);  }
-.panel-Pwn      >.panel-body, .panel-success.panel-Pwn      >.panel-heading a, .panel-Pwn      >.panel-body a, .chal-name-Pwn       { color: rgb(218, 185, 5);   }
-.panel-Misc     >.panel-body, .panel-success.panel-Misc     >.panel-heading a, .panel-Misc     >.panel-body a, .chal-name-Misc      { color: rgb(242, 47,  154); }
-.panel-Shell    >.panel-body, .panel-success.panel-Shell    >.panel-heading a, .panel-Shell    >.panel-body a, .chal-name-Shell     { color: rgb(145, 113, 253); }
-.panel-Crypto   >.panel-body, .panel-success.panel-Crypto   >.panel-heading a, .panel-Crypto   >.panel-body a, .chal-name-Crypto    { color: rgb(5,   218, 185); }
-.panel-OSINT    >.panel-body, .panel-success.panel-OSINT    >.panel-heading a, .panel-OSINT    >.panel-body a, .chal-name-OSINT     { color: rgb(131, 225, 15);  }
+.panel a { color: inherit; }
+
+.panel-PPC      >.panel-body, .panel-success.panel-PPC      >.panel-heading, .chal-name-PPC       { color: rgb(253, 105, 64);  }
+.panel-Forensics>.panel-body, .panel-success.panel-Forensics>.panel-heading, .chal-name-Forensics { color: rgb(209, 5,   245); }
+.panel-Web      >.panel-body, .panel-success.panel-Web      >.panel-heading, .chal-name-Web       { color: rgb(29,  146, 241); }
+.panel-Binary   >.panel-body, .panel-success.panel-Binary   >.panel-heading, .chal-name-Binary    { color: rgb(2,   236, 55);  }
+.panel-Pwn      >.panel-body, .panel-success.panel-Pwn      >.panel-heading, .chal-name-Pwn       { color: rgb(218, 185, 5);   }
+.panel-Misc     >.panel-body, .panel-success.panel-Misc     >.panel-heading, .chal-name-Misc      { color: rgb(242, 47,  154); }
+.panel-Shell    >.panel-body, .panel-success.panel-Shell    >.panel-heading, .chal-name-Shell     { color: rgb(145, 113, 253); }
+.panel-Crypto   >.panel-body, .panel-success.panel-Crypto   >.panel-heading, .chal-name-Crypto    { color: rgb(5,   218, 185); }
+.panel-OSINT    >.panel-body, .panel-success.panel-OSINT    >.panel-heading, .chal-name-OSINT     { color: rgb(131, 225, 15);  }
 
 .panel-PPC      , .panel-primary.panel-PPC       >.panel-heading { background-color: rgb(253, 105, 64);  border-color: rgb(253, 105, 64);  }
 .panel-Forensics, .panel-primary.panel-Forensics >.panel-heading { background-color: rgb(209, 5,   245); border-color: rgb(209, 5,   245); }
@@ -174,4 +176,3 @@ a:hover, a:focus {
 .panel-Shell    , .panel-primary.panel-Shell     >.panel-heading { background-color: rgb(145, 113, 253); border-color: rgb(145, 113, 253); }
 .panel-Crypto   , .panel-primary.panel-Crypto    >.panel-heading { background-color: rgb(5,   218, 185); border-color: rgb(5,   218, 185); }
 .panel-OSINT    , .panel-primary.panel-OSINT     >.panel-heading { background-color: rgb(131, 225, 15);  border-color: rgb(131, 225, 15);  }
-
