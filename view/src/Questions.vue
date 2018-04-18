@@ -96,7 +96,7 @@ export default {
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .finally(() => {
+      .then(() => {
         this.sendingQuestion = false
       })
     },
@@ -115,7 +115,7 @@ export default {
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .finally(() => {
+      .then(() => {
         this.answeringQuestion = false
       })
     }

@@ -160,7 +160,7 @@ export default {
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .finally(() => {
+      .then(() => {
         this.checkingFlag = false
       })
     },
@@ -176,7 +176,7 @@ export default {
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .finally(() => {
+      .then(() => {
         this.voting = false
       })
     },
@@ -189,7 +189,7 @@ export default {
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
-      .finally(() => {
+      .then(() => {
         this.openingHint = false
       })
     }
