@@ -192,7 +192,7 @@ func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
 	return challenges, nil
 }
 
-var scoreCache map[string]int
+var scoreCache = map[string]int{}
 
 //GetScore Get the User's Score
 func (user *User) GetScore() (int, error) {
