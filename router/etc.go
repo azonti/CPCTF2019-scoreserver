@@ -2,10 +2,11 @@ package router
 
 import (
 	"fmt"
-	"git.trapti.tech/CPCTF2018/scoreserver/model"
-	"github.com/labstack/echo"
 	"net/http"
 	"time"
+
+	"git.trapti.tech/CPCTF2018/scoreserver/model"
+	"github.com/labstack/echo"
 )
 
 //EnsureContestStarted Ensure the Contest has Started

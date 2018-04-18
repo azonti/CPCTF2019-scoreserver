@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"git.trapti.tech/CPCTF2018/scoreserver/model"
 	"git.trapti.tech/CPCTF2018/scoreserver/router"
 	"github.com/labstack/echo"
-	"os"
+	"github.com/labstack/echo/middleware"
+	"github.com/trevex/golem"
 )
 
 func main() {
@@ -19,7 +22,16 @@ func main() {
 	}
 	defer model.TermWebShellCli()
 	e := echo.New()
+	e.Use(middleware.Recover())
+	router.Ws = golem.NewRouter()
+	router.SetupWs()
+	e.GET("/ws", func(c echo.Context) error {
+		router.Ws.Handler()(c.Response().Writer, c.Request())
+		return nil
+	})
+
 	g := e.Group(os.Getenv("API_URL_PREFIX"))
+
 	g.Use(router.DetermineMe)
 	g.GET("/auth/:provider", router.Auth, router.EnsureINotExist)
 	g.GET("/auth/:provider/callback", router.AuthCallback, router.EnsureINotExist)
@@ -44,5 +56,6 @@ func main() {
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
 	g.GET("/users/:userID/lastseen", router.GetLastSeenChallenge)
 	//g.GET("/visualizer", router.Visualizer.Handler())
+
 	e.Logger.Fatal(e.Start(":" + os.Getenv("BIND_PORT")))
 }

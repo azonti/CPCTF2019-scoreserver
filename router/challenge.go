@@ -2,13 +2,14 @@ package router
 
 import (
 	"fmt"
-	"git.trapti.tech/CPCTF2018/scoreserver/model"
-	"github.com/labstack/echo"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"git.trapti.tech/CPCTF2018/scoreserver/model"
+	"github.com/labstack/echo"
 )
 
 type challengeJSON struct {
@@ -126,7 +127,13 @@ func GetChallenge(c echo.Context) error {
 	}
 	if me.ID != model.Nobody.ID && !contains(challenge.WhoSolvedIDs, me.ID) {
 		me.SetLastSeenChallengeID(challengeID)
+		openProblemEventChan <- openProblemEvent{
+			EventName: "openProblem",
+			UserID:    me.ID,
+			ProblemID: challengeID,
+		}
 	}
+
 	return c.JSON(http.StatusOK, json)
 }
 
@@ -215,6 +222,16 @@ func CheckAnswer(c echo.Context) error {
 	}{}
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
+	}
+	if !contains(challenge.WhoChallengedIDs, me.ID) {
+		challenge.AddWhoChallenged(me)
+	}
+	sendFlagEventChan <- sendFlagEvent{
+		EventName: "sendFlag",
+		UserID:    me.ID,
+		Username:  me.Name,
+		ProblemID: challengeID,
+		IsSolved:  challenge.Flag == req.Flag,
 	}
 	if challenge.Flag != req.Flag {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the flag is wrong"))
