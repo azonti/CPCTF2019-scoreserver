@@ -85,7 +85,7 @@ const seasoner = {
   },
   solveCount (obj) {
     const nobj = {}
-    Object.keys(obj).sort().reverse().forEach(key => nobj[`Solved ${key} time${key != 1 ? "s" : ""}`] = obj[key])
+    Object.keys(obj).map(e => parseInt(e)).sort((x, y) => x < y).forEach(key => nobj[`Solved ${key} time${key != 1 ? "s" : ""}`] = obj[key])
     return nobj
   }
 }
