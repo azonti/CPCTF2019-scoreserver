@@ -41,10 +41,15 @@ func contains(slice []string, x string) bool {
 }
 
 func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSON, error) {
-	author, err := model.GetUserByID(challenge.AuthorID, false)
+	users, err := model.GetUsers()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get the author record: %v", err)
+		return nil, fmt.Errorf("failed to get users: %v", err)
 	}
+	usersMap := make(map[string]*model.User)
+	for _, u := range users {
+		usersMap[u.ID] = u
+	}
+	author := usersMap[challenge.AuthorID]
 	authorJSON, err := newUserJSON(me, author)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse the author record: %v", err)
@@ -66,10 +71,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	}
 	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolvedIDs))
 	for i := 0; i < len(challenge.WhoSolvedIDs); i++ {
-		whoSolved, err := model.GetUserByID(challenge.WhoSolvedIDs[i], false)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get who solved record: %v", err)
-		}
+		whoSolved := usersMap[challenge.WhoSolvedIDs[i]]
 		whoSolvedJSON, err := newUserJSON(me, whoSolved)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse who solved record: %v", err)

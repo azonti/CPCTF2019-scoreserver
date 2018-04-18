@@ -19,7 +19,7 @@
             </div>
             <dl class="row">
               <dt class="col-xs-3"></dt>
-              <dd class="col-xs-9 question-text">{{ question.query }}</dd>
+              <dd class="col-xs-9">{{ question.query }}</dd>
             </dl>
             <div v-if="question.answer || !me.is_author">
               <dl class="row">
@@ -28,7 +28,7 @@
               </dl>
               <dl class="row">
                 <dt class="col-xs-3"></dt>
-                <dd class="col-xs-9 question-text">{{ question.answer }}</dd>
+                <dd class="col-xs-9">{{ question.answer }}</dd>
               </dl>
             </div>
             <div v-else>

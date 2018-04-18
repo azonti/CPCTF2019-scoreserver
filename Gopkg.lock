@@ -129,8 +129,7 @@
     "internal/timeseries",
     "lex/httplex",
     "publicsuffix",
-    "trace",
-    "websocket"
+    "trace"
   ]
   revision = "b68f30494add4df6bd8ef5e82803f308e7f7c59c"
 
@@ -230,6 +229,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "da1bfcea6df0d8eb2d79214ac1610401371cb187e099810d12e27dcd83f49252"
+  inputs-digest = "185595455d13492843770cec61dd84202bbe2febc3213f3a8baa370b09ef105c"
   solver-name = "gps-cdcl"
   solver-version = 1
