@@ -60,7 +60,9 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       "process.env": {
-        API_URL_PREFIX: JSON.stringify(process.env.API_URL_PREFIX)
+        START_TIME: JSON.stringify(process.env.START_TIME),
+        FINISH_TIME: JSON.stringify(process.env.FINISH_TIME),
+        API_URL_PREFIX: JSON.stringify(process.env.API_URL_PREFIX),
       }
     })
   ]
