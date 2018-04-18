@@ -155,6 +155,10 @@ a:hover, a:focus {
   padding-top: 1px;
 }
 
+.question-text {
+  line-height: 17px;
+}
+
 .panel a, .chal-meta a { color: inherit; }
 
 .panel-PPC      >.panel-body, .panel-success.panel-PPC      >.panel-heading, .chal-name-PPC       { color: rgb(253, 105, 64);  }
