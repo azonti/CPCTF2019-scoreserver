@@ -8,7 +8,6 @@ import (
 	"git.trapti.tech/CPCTF2018/scoreserver/router"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/trevex/golem"
 )
 
 func main() {
@@ -23,14 +22,13 @@ func main() {
 	defer model.TermWebShellCli()
 	e := echo.New()
 	e.Use(middleware.Recover())
-	router.Ws = golem.NewRouter()
 	router.SetupWs()
-	e.GET("/ws", func(c echo.Context) error {
+
+	g := e.Group(os.Getenv("API_URL_PREFIX"))
+	g.GET("/ws", func(c echo.Context) error {
 		router.Ws.Handler()(c.Response().Writer, c.Request())
 		return nil
 	})
-
-	g := e.Group(os.Getenv("API_URL_PREFIX"))
 
 	g.Use(router.DetermineMe)
 	g.GET("/auth/:provider", router.Auth, router.EnsureINotExist)
