@@ -226,11 +226,23 @@ func CheckAnswer(c echo.Context) error {
 	if !contains(challenge.WhoChallengedIDs, me.ID) {
 		challenge.AddWhoChallenged(me)
 	}
+	score := 0
+	if challenge.Flag == req.Flag {
+		score = challenge.Score
+		for _, hint := range challenge.Hints {
+			opened := contains(me.OpenedHintIDs, hint.ID)
+			if opened {
+				score -= hint.Penalty
+			}
+		}
+	}
+
 	sendFlagEventChan <- sendFlagEvent{
 		EventName: "sendFlag",
 		UserID:    me.ID,
 		Username:  me.Name,
 		ProblemID: challengeID,
+		Score:     score,
 		IsSolved:  challenge.Flag == req.Flag,
 	}
 	if challenge.Flag != req.Flag {

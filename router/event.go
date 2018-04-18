@@ -25,6 +25,7 @@ type sendFlagEvent struct {
 	UserID    string `json:"userID"`
 	Username  string `json:"username"`
 	ProblemID string `json:"problemID"`
+	Score     int    `json:"score"`
 	IsSolved  bool   `json:"isSolved"`
 }
 
