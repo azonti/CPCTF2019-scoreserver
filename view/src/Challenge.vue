@@ -129,6 +129,15 @@ export default {
         this.flag = this.challenge.flag
         this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
       })
+      .then(() => {
+        if (this.$route.query.hide) {
+          for (let hint of this.challenge.hints) {
+            this.$set(hint, 'caption', '\\*\\*\\*CENCORED*** If you want to see it, remove hide=true from the URL.')
+          }
+          this.$set(this.challenge, 'answer', '\\*\\*\\*CENCORED*** If you want to see it, remove hide=true from the URL.')
+          this.flag = 'FLAG{ST1LL_L00KING_F0R_ME?}'
+        }
+      })
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
