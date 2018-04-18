@@ -3,6 +3,10 @@ package model
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	webshell "git.trapti.tech/CPCTF2018/webshell/rpc"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -10,9 +14,6 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	"gopkg.in/resty.v1"
-	"os"
-	"strings"
-	"time"
 )
 
 //User an User Record
@@ -191,8 +192,13 @@ func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
 	return challenges, nil
 }
 
+var scoreCache map[string]int
+
 //GetScore Get the User's Score
 func (user *User) GetScore() (int, error) {
+	if v, ok := scoreCache[user.ID]; ok {
+		return v, nil
+	}
 	rawScorePipe, penaltyPipe := db.C("challenge").Pipe([]bson.M{
 		{"$project": bson.M{"score": 1, "who_solved_ids": 1}},
 		{"$match": bson.M{"who_solved_ids": user.ID}},
@@ -223,7 +229,8 @@ func (user *User) GetScore() (int, error) {
 		}
 		penalty.Penalty = 0
 	}
-	return rawScore.Score - penalty.Penalty, nil
+	scoreCache[user.ID] = rawScore.Score - penalty.Penalty
+	return scoreCache[user.ID], nil
 }
 
 func (user *User) setLastSolvedChallengeID(challengeID string) error {

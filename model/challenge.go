@@ -2,10 +2,11 @@ package model
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/satori/go.uuid"
-	"strconv"
 )
 
 //Challenge a Challenge Record
@@ -120,6 +121,8 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 
 //AddWhoSolved Add the User to the List of Who Solved
 func (challenge *Challenge) AddWhoSolved(user *User) error {
+	delete(scoreCache, user.ID)
+
 	newWhoSolvedIDs := append(challenge.WhoSolvedIDs, user.ID)
 	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": newWhoSolvedIDs}}); err != nil {
 		return fmt.Errorf("failed to update the challenge record: %v", err)
