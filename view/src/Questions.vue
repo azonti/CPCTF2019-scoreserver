@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-headful title="Questions | CPCTF2018" />
+    <vue-headful title="Questions | CPCTF2019" />
     <div class="row questions">
       <div v-for="question in questions" class="col-md-6 question-panel">
         <div class="panel" :class="question.answer ? 'panel-success' : 'panel-primary'">

@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	webshell "git.trapti.tech/CPCTF2018/webshell/rpc"
+	webshell "git.trapti.tech/CPCTF2019/webshell/rpc"
 	"google.golang.org/grpc"
 	"os"
 )

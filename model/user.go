@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	webshell "git.trapti.tech/CPCTF2018/webshell/rpc"
+	webshell "git.trapti.tech/CPCTF2019/webshell/rpc"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/satori/go.uuid"

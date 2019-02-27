@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"git.trapti.tech/CPCTF2018/scoreserver/model"
-	"git.trapti.tech/CPCTF2018/scoreserver/router"
+	"git.trapti.tech/CPCTF2019/scoreserver/model"
+	"git.trapti.tech/CPCTF2019/scoreserver/router"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )

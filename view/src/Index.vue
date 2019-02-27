@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-headful title="CPCTF2018" />
+    <vue-headful title="CPCTF2019" />
     <markdown-container :body="body" />
   </div>
 </template>

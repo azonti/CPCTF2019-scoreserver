@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  name = "git.trapti.tech/CPCTF2018/webshell"
+  name = "git.trapti.tech/CPCTF2019/webshell"
   packages = ["rpc"]
   revision = "67bc1ab18cf52e16e74b5c78bc512e1cdb80da13"
 
@@ -229,6 +229,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "185595455d13492843770cec61dd84202bbe2febc3213f3a8baa370b09ef105c"
+  inputs-digest = "fc692703829ec067e1e20d25b3fd63880f48a308aaf973eafca692b2a2b0c2d0"
   solver-name = "gps-cdcl"
   solver-version = 1

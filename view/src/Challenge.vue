@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="challenge.id">
-      <vue-headful :title="`${challenge.name} | CPCTF2018`" />
+      <vue-headful :title="`${challenge.name} | CPCTF2019`" />
       <h1 :class="['chal-title', 'chal-name-' + challenge.genre]">{{ challenge.name }}</h1>
       <div class="row">
         <div :class="['col-md-4', 'chal-meta', 'chal-name-' + challenge.genre]">

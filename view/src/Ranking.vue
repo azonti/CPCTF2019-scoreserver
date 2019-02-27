@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-headful title="Ranking | CPCTF2018" />
+    <vue-headful title="Ranking | CPCTF2019" />
     <div class="toggle row">
       <div class="col-xs-6"><button :class="['btn', all ? 'btn-info' : 'btn-primary']" @click="all=true">Overall Ranking</button></div>
       <div class="col-xs-6"><button :class="['btn', !all ? 'btn-info' : 'btn-primary']" @click="all=false">Onsite Ranking</button></div>

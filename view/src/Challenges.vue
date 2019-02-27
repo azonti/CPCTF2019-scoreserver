@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-headful title="Challenges | CPCTF2018" />
+    <vue-headful title="Challenges | CPCTF2019" />
     <div class="toggle row">
       <div class="col-sm-4"><button :class="['btn', group == 'genre' ? 'btn-info' : 'btn-primary']" @click="group='genre'">Group by genre</button></div>
       <div class="col-sm-4"><button :class="['btn', group == 'score' ? 'btn-info' : 'btn-primary']" @click="group='score'">Group by score</button></div>
