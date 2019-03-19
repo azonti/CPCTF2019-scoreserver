@@ -54,6 +54,7 @@ func main() {
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
 	g.GET("/users/:userID/lastseen", router.GetLastSeenChallenge)
 	//g.GET("/visualizer", router.Visualizer.Handler())
+	e.Static("/", "view/")
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("BIND_PORT")))
 }
