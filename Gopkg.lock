@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "git.trapti.tech/CPCTF2019/webshell"
-  packages = ["rpc"]
-  revision = "67bc1ab18cf52e16e74b5c78bc512e1cdb80da13"
-
-[[projects]]
   name = "github.com/dghubble/oauth1"
   packages = [
     ".",
@@ -226,9 +220,14 @@
   revision = "65798e030a35b911602b4d1d743d6f50ac93b665"
   version = "v1.3"
 
+[[projects]]
+  name = "git.trapti.tech/CPCTF2019/webshell"
+  packages = ["rpc"]
+  revision = "481a70ac7cdc15793c64005987f49595217e31f2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fc692703829ec067e1e20d25b3fd63880f48a308aaf973eafca692b2a2b0c2d0"
+  inputs-digest = "dba37d41201a87b3f0792d7f17ea4992a98686bc7cb7a8a149997c1b0861e4a4"
   solver-name = "gps-cdcl"
   solver-version = 1

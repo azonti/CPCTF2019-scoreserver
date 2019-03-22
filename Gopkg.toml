@@ -25,6 +25,10 @@
 #   unused-packages = true
 
 
+[[constraint]]
+  #branch = "master"
+  name = "git.trapti.tech/CPCTF2019/webshell"
+  revision = "481a70ac7cdc15793c64005987f49595217e31f2"
 [prune]
   go-tests = true
   unused-packages = true
