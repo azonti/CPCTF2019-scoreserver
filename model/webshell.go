@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	webshell "/root/go/src/git.trapti.tech/CPCTF2019/webshell/rpc"
+	webshell "git.trapti.tech/CPCTF2019/webshell/rpc"
 	"google.golang.org/grpc"
 )
 
