@@ -21,6 +21,7 @@ func main() {
 	}
 	defer model.TermWebShellCli()
 	e := echo.New()
+	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	router.SetupWs()
 
@@ -54,7 +55,15 @@ func main() {
 	g.GET("/users/:userID/solved/last", router.GetLastSolvedChallenge)
 	g.GET("/users/:userID/lastseen", router.GetLastSeenChallenge)
 	//g.GET("/visualizer", router.Visualizer.Handler())
+
 	e.Static("/", "view/")
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		if he, ok := err.(*echo.HTTPError); ok {
+			if he.Code == 404 {
+				c.File("view/index.html")
+			}
+		}
+	}
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("BIND_PORT")))
 }
