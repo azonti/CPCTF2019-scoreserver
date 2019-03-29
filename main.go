@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 
 	"git.trapti.tech/CPCTF2019/scoreserver/model"
 	"git.trapti.tech/CPCTF2019/scoreserver/router"
@@ -58,10 +60,15 @@ func main() {
 
 	e.Static("/", "view/")
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		fmt.Println(err.Error())
 		if he, ok := err.(*echo.HTTPError); ok {
-			if he.Code == 404 {
+			if he.Code != 404 || strings.HasPrefix(c.Request().URL.Path, os.Getenv("API_URL_PREFIX")) {
+				c.JSON(he.Code, err.Error())
+			} else {
 				c.File("view/index.html")
 			}
+		} else {
+			c.JSON(http.StatusInternalServerError, err.Error())
 		}
 	}
 
