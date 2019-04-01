@@ -12,7 +12,8 @@ import (
 //Challenge a Challenge Record
 type Challenge struct {
 	ObjectID         bson.ObjectId `bson:"_id"`
-	ID               string        `bson:"id"`
+	ChallengeID      string        `bson:"challenge_id"`
+	GroupID          string        `bson:"group_id"`
 	Genre            string        `bson:"genre"`
 	Name             string        `bson:"name"`
 	AuthorID         string        `bson:"author_id"`
@@ -53,9 +54,9 @@ func GetChallenges() ([]*Challenge, error) {
 }
 
 //GetChallengeByID Get the Challenge Record by its ID
-func GetChallengeByID(id string) (*Challenge, error) {
+func GetChallengeByID(challengeID string) (*Challenge, error) {
 	challenge := &Challenge{}
-	if err := db.C("challenge").Find(bson.M{"id": id}).One(challenge); err != nil {
+	if err := db.C("challenge").Find(bson.M{"challenge_id": challengeID}).One(challenge); err != nil {
 		if err == mgo.ErrNotFound {
 			return nil, ErrChallengeNotFound
 		}
@@ -65,27 +66,31 @@ func GetChallengeByID(id string) (*Challenge, error) {
 }
 
 //NewChallenge Make a New Challenge Record
-func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) (*Challenge, error) {
-	id := uuid.NewV4().String()
+func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string, groupID string) (*Challenge, error) {
+	challengeID := uuid.NewV4().String()
+	if groupID == "" {
+		groupID = uuid.NewV4().String()
+	}
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
-			ID:      id + ":" + strconv.Itoa(i),
+			ID:      challengeID + ":" + strconv.Itoa(i),
 			Caption: captions[i],
 			Penalty: penalties[i],
 		}
 	}
 	challenge := &Challenge{
-		ObjectID: bson.NewObjectId(),
-		ID:       id,
-		Genre:    genre,
-		Name:     name,
-		AuthorID: authorID,
-		Score:    score,
-		Caption:  caption,
-		Hints:    hints,
-		Flag:     flag,
-		Answer:   answer,
+		ObjectID:    bson.NewObjectId(),
+		ChallengeID: challengeID,
+		GroupID:     groupID,
+		Genre:       genre,
+		Name:        name,
+		AuthorID:    authorID,
+		Score:       score,
+		Caption:     caption,
+		Hints:       hints,
+		Flag:        flag,
+		Answer:      answer,
 	}
 	if err := db.C("challenge").Insert(challenge); err != nil {
 		return nil, fmt.Errorf("failed to insert a new challenge record: %v", err)
@@ -102,7 +107,7 @@ func (challenge *Challenge) Delete() error {
 func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) error {
 	hintBsons := make([]bson.M, len(captions))
 	for i := 0; i < len(captions); i++ {
-		hintBsons[i] = bson.M{"id": challenge.ID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
+		hintBsons[i] = bson.M{"id": challenge.ChallengeID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
 	}
 	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"genre": genre, "name": name, "author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer}}); err != nil {
 		return err
@@ -110,7 +115,7 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
-			ID:      challenge.ID + ":" + strconv.Itoa(i),
+			ID:      challenge.ChallengeID + ":" + strconv.Itoa(i),
 			Caption: captions[i],
 			Penalty: penalties[i],
 		}
@@ -127,7 +132,7 @@ func (challenge *Challenge) AddWhoSolved(user *User) error {
 	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": newWhoSolvedIDs}}); err != nil {
 		return fmt.Errorf("failed to update the challenge record: %v", err)
 	}
-	if err := user.setLastSolvedChallengeID(challenge.ID); err != nil {
+	if err := user.setLastSolvedChallengeID(challenge.ChallengeID); err != nil {
 		db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": challenge.WhoSolvedIDs}})
 		return fmt.Errorf("failed to set the user's last solved challenge ID: %v", err)
 	}
@@ -147,7 +152,7 @@ func (challenge *Challenge) AddWhoChallenged(user *User) error {
 
 //GetVote Get the User's Vote for the Challenge
 func (challenge *Challenge) GetVote(userID string) (string, error) {
-	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).Count()
+	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}).Count()
 	if err != nil {
 		return "", err
 	}
@@ -155,7 +160,7 @@ func (challenge *Challenge) GetVote(userID string) (string, error) {
 		return "", nil
 	}
 	vote := &Vote{}
-	if err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).One(vote); err != nil {
+	if err := db.C("vote").Find(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}).One(vote); err != nil {
 		return "", err
 	}
 	return vote.VoteStr, nil
@@ -163,14 +168,14 @@ func (challenge *Challenge) GetVote(userID string) (string, error) {
 
 //PutVote Put the User's Vote for the Challenge
 func (challenge *Challenge) PutVote(userID string, voteStr string) error {
-	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ID, "user_id": userID}).Count()
+	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}).Count()
 	if err != nil {
 		return err
 	}
 	if n == 0 {
 		vote := &Vote{
 			ObjectID:    bson.NewObjectId(),
-			ChallengeID: challenge.ID,
+			ChallengeID: challenge.ChallengeID,
 			UserID:      userID,
 			VoteStr:     voteStr,
 		}
@@ -179,7 +184,7 @@ func (challenge *Challenge) PutVote(userID string, voteStr string) error {
 		}
 		return nil
 	}
-	if err := db.C("vote").Update(bson.M{"challenge_id": challenge.ID, "user_id": userID}, bson.M{"$set": bson.M{"vote": voteStr}}); err != nil {
+	if err := db.C("vote").Update(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}, bson.M{"$set": bson.M{"vote": voteStr}}); err != nil {
 		return err
 	}
 	return nil

@@ -13,16 +13,17 @@ import (
 )
 
 type challengeJSON struct {
-	ID        string      `json:"id"`
-	Genre     string      `json:"genre"`
-	Name      string      `json:"name"`
-	Author    *userJSON   `json:"author"`
-	Score     int         `json:"score"`
-	Caption   string      `json:"caption"`
-	Hints     []*hintJSON `json:"hints"`
-	Flag      string      `json:"flag"`
-	Answer    string      `json:"answer"`
-	WhoSolved []*userJSON `json:"who_solved"`
+	ChallengeID string      `json:"challenge_id"`
+	GroupID     string      `json:"group_id"`
+	Genre       string      `json:"genre"`
+	Name        string      `json:"name"`
+	Author      *userJSON   `json:"author"`
+	Score       int         `json:"score"`
+	Caption     string      `json:"caption"`
+	Hints       []*hintJSON `json:"hints"`
+	Flag        string      `json:"flag"`
+	Answer      string      `json:"answer"`
+	WhoSolved   []*userJSON `json:"who_solved"`
 }
 
 type hintJSON struct {
@@ -80,16 +81,17 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	}
 	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
 	json := &challengeJSON{
-		ID:        challenge.ID,
-		Genre:     challenge.Genre,
-		Name:      challenge.Name,
-		Author:    authorJSON,
-		Score:     score,
-		Caption:   challenge.Caption,
-		Hints:     hintJSONs,
-		Flag:      map[bool]string{true: challenge.Flag}[canISeeAnswer],
-		Answer:    map[bool]string{true: challenge.Answer}[canISeeAnswer],
-		WhoSolved: whoSolvedJSONs,
+		ChallengeID: challenge.ChallengeID,
+		GroupID:     challenge.GroupID,
+		Genre:       challenge.Genre,
+		Name:        challenge.Name,
+		Author:      authorJSON,
+		Score:       score,
+		Caption:     challenge.Caption,
+		Hints:       hintJSONs,
+		Flag:        map[bool]string{true: challenge.Flag}[canISeeAnswer],
+		Answer:      map[bool]string{true: challenge.Answer}[canISeeAnswer],
+		WhoSolved:   whoSolvedJSONs,
 	}
 	return json, nil
 }
@@ -152,13 +154,13 @@ func PostChallenge(c echo.Context) error {
 		captions[i] = _hintJSON.Caption
 		penalties[i] = _hintJSON.Penalty
 	}
-	challenge, err := model.NewChallenge(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer)
+	challenge, err := model.NewChallenge(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer, req.GroupID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	me := c.Get("me").(*model.User)
 	json, _ := newChallengeJSON(me, challenge)
-	c.Response().Header().Set(echo.HeaderLocation, os.Getenv("API_URL_PREFIX")+"/challenges/"+challenge.ID)
+	c.Response().Header().Set(echo.HeaderLocation, os.Getenv("API_URL_PREFIX")+"/challenges/"+challenge.GroupID)
 	return c.JSON(http.StatusCreated, json)
 }
 
@@ -216,6 +218,7 @@ func CheckAnswer(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
 	me := c.Get("me").(*model.User)
+TODO：複数フラグに対応
 	if contains(challenge.WhoSolvedIDs, me.ID) {
 		return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("you already solved the challenge"))
 	}
@@ -239,6 +242,7 @@ func CheckAnswer(c echo.Context) error {
 		}
 	}
 
+	TODO：これ良く分からない
 	sendFlagEventChan <- sendFlagEvent{
 		EventName: "sendFlag",
 		UserID:    me.ID,
