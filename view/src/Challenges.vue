@@ -14,7 +14,7 @@
         <h1 :class="'chal-name-' + key">{{ key }}</h1>
         <div class="row">
           <div v-for="challenge in chals" class="col-xl-3 col-md-4 col-sm-6" v-if="!challenge.solved || !hide">
-            <router-link :to="{name: 'challenge', params: {id: challenge.id}, query: { hide: contestFinished ? 'true' : ''}}" :class="['panel', 'panel-' + challenge.genre, challenge.solved ? 'panel-success' : 'panel-primary']">
+            <router-link :to="{name: 'challenge', params: {id: challenge.challenge_id}, query: { hide: contestFinished ? 'true' : ''}}" :class="['panel', 'panel-' + challenge.genre, challenge.solved ? 'panel-success' : 'panel-primary']">
               <div class="panel-heading">
                 <h2 class="panel-title">{{ challenge.name }}</h2>
               </div>

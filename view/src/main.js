@@ -39,7 +39,7 @@ const router = new Router({
       component: Challenges
     },
     {
-      path: '/challenges/:id',
+      path: '/challenges/:challenge_id',
       name: 'challenge',
       props: true,
       component: Challenge

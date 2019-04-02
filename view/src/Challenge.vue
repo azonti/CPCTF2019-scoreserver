@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="challenge.id">
+    <div v-if="challenge.challenge_id">
       <vue-headful :title="`${challenge.name} | CPCTF2019`" />
       <h1 :class="['chal-title', 'chal-name-' + challenge.genre]">{{ challenge.name }}</h1>
       <div class="row">
@@ -93,7 +93,7 @@ const api = axios.create({
 
 export default {
   props: [
-    'id',
+    'challenge_id',
     'me'
   ],
   data () {
@@ -112,7 +112,7 @@ export default {
     this.fetchChallenge()
   },
   watch: {
-    id (val) {
+    challenge_id (val) {
       this.fetchChallenge()
     },
     me (val) {
@@ -121,13 +121,13 @@ export default {
   },
   methods: {
     fetchChallenge () {
-      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}`)
       .then(res => res.data).then((data) => {
         for (const key in data) {
           this.$set(this.challenge, key, data[key])
         }
         this.flag = this.challenge.flag
-        this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
+        this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}`
       })
       .then(() => {
         if (this.$route.query.hide) {
@@ -143,14 +143,14 @@ export default {
       })
     },
     fetchVote () {
-      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}/votes/${this.me.id}`)
       .then(res => res.data).then((data) => {
         this.voted = data
       })
     },
     checkFlag () {
       this.checkingFlag = true
-      return api.post(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, {
+      return api.post(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}`, {
         flag: this.flag
       })
       .then(() => {
@@ -166,7 +166,7 @@ export default {
     },
     vote (v) {
       this.voting = true
-      return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`, {
+      return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}/votes/${this.me.id}`, {
         vote: v
       })
       .then(() => {
