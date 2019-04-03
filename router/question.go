@@ -2,10 +2,11 @@ package router
 
 import (
 	"fmt"
-	"git.trapti.tech/CPCTF2019/scoreserver/model"
-	"github.com/labstack/echo"
 	"net/http"
 	"os"
+
+	"git.trapti.tech/CPCTF2019/scoreserver/model"
+	"github.com/labstack/echo"
 )
 
 type questionJSON struct {
@@ -118,7 +119,7 @@ func PostQuestion(c echo.Context) error {
 	}
 	var challengeID = ""
 	if req.Challenge != nil {
-		challengeID = req.Challenge.ID
+		challengeID = req.Challenge.ChallengeID
 	}
 	question, err := model.NewQuestion(req.Questioner.ID, challengeID, req.Query)
 	if err != nil {
@@ -149,7 +150,7 @@ func PutQuestion(c echo.Context) error {
 	}
 	var challengeID = ""
 	if req.Challenge != nil {
-		challengeID = req.Challenge.ID
+		challengeID = req.Challenge.ChallengeID
 	}
 	if err := question.Update(questionerID, req.Answerer.ID, challengeID, req.Query, req.Answer); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
