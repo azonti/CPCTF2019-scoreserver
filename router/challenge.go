@@ -217,32 +217,60 @@ func CheckAnswer(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
-	me := c.Get("me").(*model.User)
-TODO：複数フラグに対応
-	if contains(challenge.WhoSolvedIDs, me.ID) {
-		return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("you already solved the challenge"))
+	challenges, err := model.GetChallengeByGroupID(challenge.GroupID)
+	if err != nil {
+		if err == model.ErrChallengeNotFound {
+			return echo.NewHTTPError(http.StatusNotFound)
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
+
 	req := &struct {
 		Flag string `form:"flag"`
 	}{}
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
-	if !contains(challenge.WhoChallengedIDs, me.ID) {
-		challenge.AddWhoChallenged(me)
-	}
+
 	score := 0
-	if challenge.Flag == req.Flag {
-		score = challenge.Score
-		for _, hint := range challenge.Hints {
-			opened := contains(me.OpenedHintIDs, hint.ID)
-			if opened {
-				score -= hint.Penalty
+	var nowPointedChallnge *model.Challenge
+	me := c.Get("me").(*model.User)
+	for i := 0; i < len(challenges); i++ {
+		flag := challenges[i].Flag
+		if len(flag) < 10 {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("author's answer is invaild(InternalServerError"))
+		}
+		if len(req.Flag) < 10 {
+			continue
+		}
+		//FLAG_X00{}
+		if req.Flag[5] != flag[5] {
+			continue
+		}
+		challenge = challenges[i]
+		challengeID = challenge.ChallengeID
+
+		if !contains(challenge.WhoChallengedIDs, me.ID) {
+			challenge.AddWhoChallenged(me)
+		}
+		if contains(challenge.WhoPointedIDs, me.ID) {
+			nowPointedChallnge = challenge
+		}
+		if challenge.Flag == req.Flag {
+			if contains(challenge.WhoSolvedIDs, me.ID) {
+				return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("success(you already solved the challenge)"))
 			}
+			score = challenge.Score
+			for _, hint := range challenge.Hints {
+				opened := contains(me.OpenedHintIDs, hint.ID)
+				if opened {
+					score -= hint.Penalty
+				}
+			}
+			break
 		}
 	}
 
-	TODO：これ良く分からない
 	sendFlagEventChan <- sendFlagEvent{
 		EventName: "sendFlag",
 		UserID:    me.ID,
@@ -254,8 +282,24 @@ TODO：複数フラグに対応
 	if challenge.Flag != req.Flag {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the flag is wrong"))
 	}
-	if err := challenge.AddWhoSolved(me); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to add you to the list of who solved: %v", err))
+	nowScore := -1
+	if nowPointedChallnge != nil {
+		nowScore = nowPointedChallnge.Score
+		for _, hint := range nowPointedChallnge.Hints {
+			opened := contains(me.OpenedHintIDs, hint.ID)
+			if opened {
+				nowScore -= hint.Penalty
+			}
+		}
+	}
+	if score < nowScore {
+		if err := challenge.MoveWhoPointed(me, nowPointedChallnge); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to move you to the list of who pointed: %v", err))
+		}
+	} else {
+		if err := challenge.AddWhoSolved(me); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to add you to the list of who solved: %v", err))
+		}
 	}
 	return c.Redirect(http.StatusSeeOther, os.Getenv("API_URL_PREFIX")+"/challenges/"+challengeID)
 }

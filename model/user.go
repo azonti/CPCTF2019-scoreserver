@@ -200,12 +200,12 @@ func (user *User) GetScore() (int, error) {
 		return v, nil
 	}
 	rawScorePipe, penaltyPipe := db.C("challenge").Pipe([]bson.M{
-		{"$project": bson.M{"score": 1, "who_solved_ids": 1}},
-		{"$match": bson.M{"who_solved_ids": user.ID}},
+		{"$project": bson.M{"score": 1, "who_pointed_ids": 1}},
+		{"$match": bson.M{"who_pointed_ids": user.ID}},
 		{"$group": bson.M{"_id": "score", "score": bson.M{"$sum": "$score"}}},
 	}), db.C("challenge").Pipe([]bson.M{
-		{"$project": bson.M{"hints": 1, "who_solved_ids": 1}},
-		{"$match": bson.M{"who_solved_ids": user.ID}},
+		{"$project": bson.M{"hints": 1, "who_pointed_ids": 1}},
+		{"$match": bson.M{"who_pointed_ids": user.ID}},
 		{"$unwind": "$hints"},
 		{"$match": bson.M{"hints.id": bson.M{"$in": user.OpenedHintIDs}}},
 		{"$group": bson.M{"_id": "penalty", "penalty": bson.M{"$sum": "$hints.penalty"}}},
