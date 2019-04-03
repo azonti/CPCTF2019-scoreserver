@@ -63,12 +63,19 @@ func main() {
 		fmt.Println(err.Error())
 		if he, ok := err.(*echo.HTTPError); ok {
 			if he.Code != 404 || strings.HasPrefix(c.Request().URL.Path, os.Getenv("API_URL_PREFIX")) {
-				c.JSON(he.Code, err.Error())
+				mes := struct {
+					Message string `json:"message"`
+				}{Message: err.Error()}
+				c.JSON(he.Code, mes)
 			} else {
 				c.File("view/index.html")
 			}
 		} else {
-			c.JSON(http.StatusInternalServerError, err.Error())
+			err = fmt.Errorf("failed to cast in HTTPErrorHandler: %v", err)
+			mes := struct {
+				Message string `json:"message"`
+			}{Message: err.Error()}
+			c.JSON(http.StatusInternalServerError, mes)
 		}
 	}
 
