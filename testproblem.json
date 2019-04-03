@@ -1,0 +1,10 @@
+{
+    "genre":"pwn",
+    "name":"test",
+    "author":{"id":"twitter_960728246596780032","name":"eiya@大学垢","icon_url":"https://pbs.twimg.com/profile_images/992202907389853698/Fwpldgoq.jpg","twitter_screen_name":"eiya5497313","is_author":false,"is_onsite":false,"score":0,"web_shell_pass":""},
+    "score":500,
+    "caption":"this_is=test-problem",
+    "flag":"FLAG_500{this_is=test-problem}",
+    "answer":"hint4???",
+    "hints":[{"id":"test:0","caption":"hint1","penalty":50},{"id":"test:1","caption":"hint2","penalty":60},{"id":"test:2","caption":"hint3","penalty":90}]
+}
