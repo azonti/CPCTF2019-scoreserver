@@ -232,10 +232,15 @@ func CheckAnswer(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
 
+	solved := false
 	score := 0
 	var nowPointedChallnge *model.Challenge
 	me := c.Get("me").(*model.User)
 	for i := 0; i < len(challenges); i++ {
+		if contains(challenges[i].WhoPointedIDs, me.ID) {
+			nowPointedChallnge = challenges[i]
+		}
+
 		flag := challenges[i].Flag
 		if len(flag) < 10 {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("author's answer is invaild(InternalServerError"))
@@ -247,27 +252,26 @@ func CheckAnswer(c echo.Context) error {
 		if req.Flag[5] != flag[5] {
 			continue
 		}
-		challenge = challenges[i]
-		challengeID = challenge.ChallengeID
 
-		if !contains(challenge.WhoChallengedIDs, me.ID) {
-			challenge.AddWhoChallenged(me)
+		if !contains(challenges[i].WhoChallengedIDs, me.ID) {
+			challenges[i].AddWhoChallenged(me)
 		}
-		if contains(challenge.WhoPointedIDs, me.ID) {
-			nowPointedChallnge = challenge
-		}
-		if challenge.Flag == req.Flag {
-			if contains(challenge.WhoSolvedIDs, me.ID) {
-				return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("success(you already solved the challenge)"))
-			}
-			score = challenge.Score
-			for _, hint := range challenge.Hints {
-				opened := contains(me.OpenedHintIDs, hint.ID)
-				if opened {
-					score -= hint.Penalty
+		if !solved {
+			challenge = challenges[i]
+			challengeID = challenge.ChallengeID
+			if challenge.Flag == req.Flag {
+				if contains(challenge.WhoSolvedIDs, me.ID) {
+					return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("success(you already solved the challenge)"))
 				}
+				score = challenge.Score
+				for _, hint := range challenge.Hints {
+					opened := contains(me.OpenedHintIDs, hint.ID)
+					if opened {
+						score -= hint.Penalty
+					}
+				}
+				solved = true
 			}
-			break
 		}
 	}
 
@@ -277,12 +281,12 @@ func CheckAnswer(c echo.Context) error {
 		Username:  me.Name,
 		ProblemID: challengeID,
 		Score:     score,
-		IsSolved:  challenge.Flag == req.Flag,
+		IsSolved:  solved,
 	}
-	if challenge.Flag != req.Flag {
+	if !solved {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the flag is wrong"))
 	}
-	nowScore := -1
+	nowScore := score - 1
 	if nowPointedChallnge != nil {
 		nowScore = nowPointedChallnge.Score
 		for _, hint := range nowPointedChallnge.Hints {
@@ -292,7 +296,7 @@ func CheckAnswer(c echo.Context) error {
 			}
 		}
 	}
-	if score < nowScore {
+	if nowScore < score {
 		if err := challenge.MoveWhoPointed(me, nowPointedChallnge); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to move you to the list of who pointed: %v", err))
 		}

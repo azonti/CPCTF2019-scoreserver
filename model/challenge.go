@@ -155,29 +155,35 @@ func (challenge *Challenge) AddWhoSolved(user *User) error {
 //MoveWhoPointed Move the User to the List of Who Pointed (and Add the User to the List of Who Solved)
 func (challenge *Challenge) MoveWhoPointed(user *User, nowPointed *Challenge) error {
 	delete(scoreCache, user.ID)
-	var deletedWhoPointedIDs []string
-	for i, id := range nowPointed.WhoPointedIDs {
-		if id == user.ID {
-			deletedWhoPointedIDs = append(nowPointed.WhoPointedIDs[:i], nowPointed.WhoPointedIDs[i+1:]...)
-			break
-		}
-	}
 	addedWhoPointedIDs := append(challenge.WhoPointedIDs, user.ID)
 	newWhoSolvedIDs := append(challenge.WhoSolvedIDs, user.ID)
 	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": addedWhoPointedIDs, "who_solved_ids": newWhoSolvedIDs}}); err != nil {
 		return fmt.Errorf("failed to update the challenge record(add): %v", err)
 	}
-	if err := db.C("challenge").UpdateId(nowPointed.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": deletedWhoPointedIDs}}); err != nil {
-		db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": challenge.WhoPointedIDs, "who_solved_ids": challenge.WhoSolvedIDs}})
-		return fmt.Errorf("failed to update the challenge record(delete): %v", err)
+	var deletedWhoPointedIDs []string
+	if nowPointed != nil {
+		for i, id := range nowPointed.WhoPointedIDs {
+			if id == user.ID {
+				deletedWhoPointedIDs = append(nowPointed.WhoPointedIDs[:i], nowPointed.WhoPointedIDs[i+1:]...)
+				break
+			}
+		}
+		if err := db.C("challenge").UpdateId(nowPointed.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": deletedWhoPointedIDs}}); err != nil {
+			db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": challenge.WhoPointedIDs, "who_solved_ids": challenge.WhoSolvedIDs}})
+			return fmt.Errorf("failed to update the challenge record(delete): %v", err)
+		}
 	}
 	if err := user.setLastSolvedChallengeID(challenge.ChallengeID); err != nil {
 		db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": challenge.WhoPointedIDs, "who_solved_ids": challenge.WhoSolvedIDs}})
-		db.C("challenge").UpdateId(nowPointed.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": nowPointed.WhoPointedIDs}})
+		if nowPointed != nil {
+			db.C("challenge").UpdateId(nowPointed.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": nowPointed.WhoPointedIDs}})
+		}
 		return fmt.Errorf("failed to set the user's last solved challenge ID: %v", err)
 	}
 
-	nowPointed.WhoPointedIDs = deletedWhoPointedIDs
+	if nowPointed != nil {
+		nowPointed.WhoPointedIDs = deletedWhoPointedIDs
+	}
 	challenge.WhoPointedIDs = addedWhoPointedIDs
 	challenge.WhoSolvedIDs = newWhoSolvedIDs
 	return nil
