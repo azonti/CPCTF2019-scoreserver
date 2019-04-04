@@ -152,8 +152,8 @@ func (user *User) MakeMeOnsite() error {
 }
 
 //OpenHint Open the Hint
-func (user *User) OpenHint(id string) error {
-	newOpenedHintIDs := append(user.OpenedHintIDs, id)
+func (user *User) OpenHints(id []string) error {
+	newOpenedHintIDs := append(user.OpenedHintIDs, id...)
 	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"opened_hint_ids": newOpenedHintIDs}}); err != nil {
 		return fmt.Errorf("failed to update the user record: %v", err)
 	}

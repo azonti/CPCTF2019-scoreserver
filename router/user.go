@@ -200,7 +200,41 @@ func CheckCode(c echo.Context) error {
 		if strconv.Itoa(cnt) != partedCode[2] {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you cannot open this hint yet"))
 		}
-		if err := me.OpenHint(hintID); err != nil {
+		if err := me.OpenHints([]string{hintID}); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusNoContent)
+	case strings.HasPrefix(req.Code, "group_hint:"):
+		if !finish.After(now) && !me.IsAuthor {
+			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
+		}
+		partedCode := strings.Split(req.Code, ":")
+		if len(partedCode) != 3 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid hint code"))
+		}
+		groupID := partedCode[1]
+		openHintIDs := []string{}
+		challenges, err := model.GetChallengeByGroupID(groupID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		for _, challenge := range challenges {
+			cnt := 0
+			hintID := challenge.ChallengeID + ":" + partedCode[2]
+			for _, openedHintID := range me.OpenedHintIDs {
+				if hintID == openedHintID {
+					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
+				}
+				if strings.HasPrefix(openedHintID, partedCode[1]+":") {
+					cnt++
+				}
+			}
+			if strconv.Itoa(cnt) != partedCode[2] {
+				return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you cannot open this hint yet"))
+			}
+			openHintIDs = append(openHintIDs, hintID)
+		}
+		if err := me.OpenHints(openHintIDs); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusNoContent)
