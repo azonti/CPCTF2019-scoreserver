@@ -56,7 +56,7 @@
           </div>
           <div class="row" style="margin-top: 20px">
             <div class="col-md-10">
-              <input class="form-control" v-model="flag" placeholder="FLAG{FL4G_1S_H3RE}">
+              <input class="form-control" v-model="flag" placeholder="FLAG_X00{FL4G_1S_H3RE}">
             </div>
             <div class="col-md-2">
               <button v-if="!checkingFlag && !challenge.answer" @click="checkFlag" class="btn btn-primary" style="width: 100%;">Check</button>
