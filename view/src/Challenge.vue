@@ -183,7 +183,7 @@ export default {
     openHint () {
       this.openingHint = true
       return api.post(`${process.env.API_URL_PREFIX}/users/me`, {
-        code: `hint:${this.hintToOpen.id}`
+        code: `group_hint:${this.challenge.group_id}:${this.hintToOpen.id}`
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {

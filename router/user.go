@@ -180,6 +180,7 @@ func CheckCode(c echo.Context) error {
 	}
 	switch {
 	case strings.HasPrefix(req.Code, "hint:"):
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("please use group_hint"))
 		if !finish.After(now) && !me.IsAuthor {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
 		}
@@ -209,7 +210,7 @@ func CheckCode(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
 		}
 		partedCode := strings.Split(req.Code, ":")
-		if len(partedCode) != 3 {
+		if len(partedCode) != 4 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid hint code"))
 		}
 		groupID := partedCode[1]
@@ -220,16 +221,16 @@ func CheckCode(c echo.Context) error {
 		}
 		for _, challenge := range challenges {
 			cnt := 0
-			hintID := challenge.ChallengeID + ":" + partedCode[2]
+			hintID := challenge.ChallengeID + ":" + partedCode[3]
 			for _, openedHintID := range me.OpenedHintIDs {
 				if hintID == openedHintID {
 					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
 				}
-				if strings.HasPrefix(openedHintID, partedCode[1]+":") {
+				if strings.HasPrefix(openedHintID, challenge.ChallengeID+":") {
 					cnt++
 				}
 			}
-			if strconv.Itoa(cnt) != partedCode[2] {
+			if strconv.Itoa(cnt) != partedCode[3] {
 				return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you cannot open this hint yet"))
 			}
 			openHintIDs = append(openHintIDs, hintID)
