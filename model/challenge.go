@@ -75,6 +75,9 @@ func GetChallengeByGroupID(groupID string) ([]*Challenge, error) {
 		}
 		return nil, err
 	}
+	if len(challenges) == 0 {
+		return nil, ErrChallengeNotFound
+	}
 	return challenges, nil
 }
 
