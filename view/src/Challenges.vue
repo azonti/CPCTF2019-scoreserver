@@ -24,8 +24,10 @@
                   <dd class="col-xs-8 col-a-right author"><router-link :to="{name: 'user', params: {id: challenge.author.id}}"><img :src="challenge.author.icon_url" class="icon">{{ challenge.author.name }} <small v-if="challenge.author.twitter_screen_name">(@{{ challenge.author.twitter_screen_name }})</small></router-link></dd>
                 </dl>
                 <dl class="row">
-                  <dt class="col-xs-4 col-a-left">Score</dt>
-                  <dd class="col-xs-8 col-a-right chal-score">{{ challenge.score }} <small class="level">({{ "★".repeat(challenge.difficulty) }})</small></dd>
+                  <dt class="col-xs-4 col-a-left">Score</dt><dd class="col-xs-8 col-a-right chal-score">{{ challenge.scores[0] }} <small class="level">({{ "★".repeat(challenge.difficultys[0]) }})</small></dd>
+                  <div v-for="i in challenge.scores.length - 1">
+                    <dt class="col-xs-4 col-a-left"></dt><dd class="col-xs-8 col-a-right chal-score">{{ challenge.scores[i] }} <small class="level">({{ "★".repeat(challenge.difficultys[i]) }})</small></dd>
+                  </div>
                 </dl>
                 <dl class="row">
                   <dt class="col-xs-4 col-a-left">Solved</dt>
@@ -105,7 +107,7 @@ export default {
   },
   created () {
     setInterval(() => {this.contestFinished = Date.parse(process.env.FINISH_TIME) - Date.now() > 0 ? false : true;}, 5000)
-    return api.get(`${process.env.API_URL_PREFIX}/challenges`)
+    return api.get(`${process.env.API_URL_PREFIX}/challenge_groups`)
     .then((res) => res.data)
     .then((data) => {
       data.forEach((chal) => {

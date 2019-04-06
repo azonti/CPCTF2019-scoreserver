@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +20,9 @@ type challengeJSON struct {
 	Name        string      `json:"name"`
 	Author      *userJSON   `json:"author"`
 	Score       int         `json:"score"`
+	Scores      []int       `json:"scores"`
 	Difficulty  int         `json:"difficulty"`
+	Difficultys []int       `json:"difficultys"`
 	Caption     string      `json:"caption"`
 	Hints       []*hintJSON `json:"hints"`
 	Flag        string      `json:"flag"`
@@ -115,6 +118,63 @@ func GetChallenges(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the challenge record: %v", err))
 		}
 		jsons[i] = json
+	}
+	return c.JSON(http.StatusOK, jsons)
+}
+
+//GetChallengeGroups the Method Handler of "GET /challenge_groups"
+func GetChallengeGroups(c echo.Context) error {
+	challenges, err := model.GetChallenges()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	sort.SliceStable(challenges, func(i, j int) bool {
+		if challenges[i].GroupID == challenges[j].GroupID {
+			return challenges[i].Score > challenges[j].Score
+		}
+		return challenges[i].GroupID < challenges[j].GroupID
+	})
+	me := c.Get("me").(*model.User)
+	jsons := []*challengeJSON{}
+	if len(challenges) > 0 {
+		var temp *challengeJSON
+		var tempScores []int
+		var tempDifficultys []int
+		tempGroupID := challenges[0].GroupID
+		for i := 0; i < len(challenges); i++ {
+			if tempGroupID != challenges[i].GroupID {
+				if temp == nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("complete challenge is missing: %s(%s)", challenges[i-1].GroupID, challenges[i-1].Name))
+				}
+				temp.Scores = tempScores
+				temp.Difficultys = tempDifficultys
+				jsons = append(jsons, temp)
+				tempGroupID = challenges[i].GroupID
+				temp = nil
+				tempScores = []int{}
+				tempDifficultys = []int{}
+			}
+			if challenges[i].IsComplete {
+				temp, err = newChallengeJSON(me, challenges[i])
+				if err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the challenge record: %v", err))
+				}
+				tempScores = append(tempScores, temp.Score)
+				tempDifficultys = append(tempDifficultys, challenges[i].Score/100)
+			} else {
+				score := challenges[i].Score
+				for _, hint := range challenges[i].Hints {
+					if contains(me.OpenedHintIDs, hint.ID) {
+						score -= hint.Penalty
+					}
+				}
+				tempScores = append(tempScores, score)
+				tempDifficultys = append(tempDifficultys, challenges[i].Score/100)
+			}
+		}
+		temp.Scores = tempScores
+		temp.Difficultys = tempDifficultys
+		jsons = append(jsons, temp)
 	}
 	return c.JSON(http.StatusOK, jsons)
 }
