@@ -19,6 +19,7 @@ type challengeJSON struct {
 	Name        string      `json:"name"`
 	Author      *userJSON   `json:"author"`
 	Score       int         `json:"score"`
+	Difficulty  int         `json:"difficulty"`
 	Caption     string      `json:"caption"`
 	Hints       []*hintJSON `json:"hints"`
 	Flag        string      `json:"flag"`
@@ -57,6 +58,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		return nil, fmt.Errorf("failed to parse the author record: %v", err)
 	}
 	now, finish := time.Now(), model.FinishTime()
+	difficulty := challenge.Score / 100
 	score := challenge.Score
 	hintJSONs := make([]*hintJSON, len(challenge.Hints))
 	for i, hint := range challenge.Hints {
@@ -88,6 +90,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		Name:        challenge.Name,
 		Author:      authorJSON,
 		Score:       score,
+		Difficulty:  difficulty,
 		Caption:     challenge.Caption,
 		Hints:       hintJSONs,
 		Flag:        map[bool]string{true: challenge.Flag}[canISeeAnswer],

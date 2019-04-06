@@ -25,7 +25,7 @@
                 </dl>
                 <dl class="row">
                   <dt class="col-xs-4 col-a-left">Score</dt>
-                  <dd class="col-xs-8 col-a-right chal-score">{{ challenge.score }} <small class="level">({{ "★".repeat(challenge.score / 100) }})</small></dd>
+                  <dd class="col-xs-8 col-a-right chal-score">{{ challenge.score }} <small class="level">({{ "★".repeat(challenge.difficulty) }})</small></dd>
                 </dl>
                 <dl class="row">
                   <dt class="col-xs-4 col-a-left">Solved</dt>
