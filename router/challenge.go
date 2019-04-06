@@ -24,6 +24,7 @@ type challengeJSON struct {
 	Flag        string      `json:"flag"`
 	Answer      string      `json:"answer"`
 	WhoSolved   []*userJSON `json:"who_solved"`
+	IsComplete  bool        `json:"is_complete"`
 }
 
 type hintJSON struct {
@@ -63,7 +64,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		if opened {
 			score -= hint.Penalty
 		}
-		canISeeHint := !finish.After(now) || opened || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+		canISeeHint := !finish.After(now) || opened || (challenge.IsComplete && contains(challenge.WhoSolvedIDs, me.ID)) || me.IsAuthor
 		hintJSONs[i] = &hintJSON{
 			ID:      hint.ID,
 			Caption: map[bool]string{true: hint.Caption}[canISeeHint],
@@ -79,7 +80,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		}
 		whoSolvedJSONs[i] = whoSolvedJSON
 	}
-	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+	canISeeAnswer := !finish.After(now) || (challenge.IsComplete && contains(challenge.WhoSolvedIDs, me.ID)) || me.IsAuthor
 	json := &challengeJSON{
 		ChallengeID: challenge.ChallengeID,
 		GroupID:     challenge.GroupID,
@@ -92,6 +93,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 		Flag:        map[bool]string{true: challenge.Flag}[canISeeAnswer],
 		Answer:      map[bool]string{true: challenge.Answer}[canISeeAnswer],
 		WhoSolved:   whoSolvedJSONs,
+		IsComplete:  challenge.IsComplete,
 	}
 	return json, nil
 }
@@ -154,7 +156,7 @@ func PostChallenge(c echo.Context) error {
 		captions[i] = _hintJSON.Caption
 		penalties[i] = _hintJSON.Penalty
 	}
-	challenge, err := model.NewChallenge(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer, req.GroupID)
+	challenge, err := model.NewChallenge(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer, req.GroupID, req.IsComplete)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

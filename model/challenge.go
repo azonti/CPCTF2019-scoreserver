@@ -25,6 +25,7 @@ type Challenge struct {
 	WhoSolvedIDs     []string      `bson:"who_solved_ids"`
 	WhoChallengedIDs []string      `bson:"who_challenged_ids"`
 	WhoPointedIDs    []string      `bson:"who_pointed_ids"`
+	IsComplete       bool          `bson:"is_complete"`
 }
 
 //Hint a Hint Record
@@ -82,7 +83,7 @@ func GetChallengeByGroupID(groupID string) ([]*Challenge, error) {
 }
 
 //NewChallenge Make a New Challenge Record
-func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string, groupID string) (*Challenge, error) {
+func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string, groupID string, isComplete bool) (*Challenge, error) {
 	challengeID := uuid.NewV4().String()
 	if groupID == "" {
 		groupID = uuid.NewV4().String()
@@ -107,6 +108,7 @@ func NewChallenge(genre string, name string, authorID string, score int, caption
 		Hints:       hints,
 		Flag:        flag,
 		Answer:      answer,
+		IsComplete:  isComplete,
 	}
 	if err := db.C("challenge").Insert(challenge); err != nil {
 		return nil, fmt.Errorf("failed to insert a new challenge record: %v", err)
