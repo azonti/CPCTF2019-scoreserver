@@ -189,11 +189,11 @@ func CheckCode(c echo.Context) error {
 		}
 		hintID := strings.Join(partedCode[1:], ":")
 		cnt := 0
-		for _, openedHintID := range me.OpenedHintIDs {
-			if hintID == openedHintID {
+		for _, openedHint := range me.OpenedHints {
+			if hintID == openedHint.ID {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
 			}
-			if strings.HasPrefix(openedHintID, partedCode[1]+":") {
+			if strings.HasPrefix(openedHint.ID, partedCode[1]+":") {
 				cnt++
 			}
 		}
@@ -248,10 +248,7 @@ func GetLastSolvedChallenge(c echo.Context) error {
 	if user.LastSolvedChallengeID == "" {
 		return c.NoContent(http.StatusNoContent)
 	}
-	challenge, err := model.GetChallengeByID(user.LastSolvedChallengeID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the last solved challenge record: %v", err))
-	}
+	challenge := user.LastSolvedChallenge
 	me := c.Get("me").(*model.User)
 	json, err := newChallengeJSON(me, challenge)
 	if err != nil {
@@ -274,10 +271,7 @@ func GetLastSeenChallenge(c echo.Context) error {
 	if user.LastSeenChallengeID == "" {
 		return c.NoContent(http.StatusNoContent)
 	}
-	challenge, err := model.GetChallengeByID(user.LastSeenChallengeID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the last seen challenge record: %v", err))
-	}
+	challenge := user.LastSeenChallenge
 	me := c.Get("me").(*model.User)
 	json, err := newChallengeJSON(me, challenge)
 	if err != nil {

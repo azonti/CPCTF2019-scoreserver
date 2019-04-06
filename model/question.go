@@ -1,30 +1,32 @@
 package model
 
 import (
-	"fmt"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 //Question a Question Record
 type Question struct {
-	ObjectID     bson.ObjectId `bson:"_id"`
-	ID           string        `bson:"id"`
-	QuestionerID string        `bson:"questioner_id"`
-	AnswererID   string        `bson:"answerer_id"`
-	ChallengeID  string        `bson:"challenge_id"`
-	Query        string        `bson:"query"`
-	Answer       string        `bson:"answer"`
+	ID           string `gorm:"primary_key"`
+	QuestionerID string
+	Questioner   *User `gorm:"foreignkey:QuestionerID"`
+	AnswererID   string
+	Answerer     *User `gorm:"foreignkey:AnswererID"`
+	Query        string
+	Answer       string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
 }
 
 //ErrQuestionNotFound an Error due to the Question Not Found
-var ErrQuestionNotFound = fmt.Errorf("the question not found")
+var ErrQuestionNotFound = gorm.ErrRecordNotFound
 
 //GetQuestions Get All Question Records
 func GetQuestions() ([]*Question, error) {
-	var questions []*Question
-	if err := db.C("question").Find(nil).All(&questions); err != nil {
+	questions := make([]*Question, 0)
+	if err := db.Preload("Questioner").Preload("Answerer").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
@@ -32,32 +34,29 @@ func GetQuestions() ([]*Question, error) {
 
 //GetQuestionByID Get the Question Record by its ID
 func GetQuestionByID(id string) (*Question, error) {
-	question := &Question{}
-	if err := db.C("question").Find(bson.M{"id": id}).One(question); err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, ErrQuestionNotFound
-		}
+	question := new(Question)
+	if err := db.Where(&Question{ID: id}).Preload("Questioner").Preload("Answerer").First(question).Error; err != nil {
 		return nil, err
 	}
 	return question, nil
 }
 
 //NewQuestion Make a New Question Record
-func NewQuestion(questionerID string, challengeID string, query string) (*Question, error) {
+func NewQuestion(questionerID string, query string) (*Question, error) {
+	id := uuid.NewV4().String()
 	question := &Question{
-		ObjectID:     bson.NewObjectId(),
-		ID:           uuid.NewV4().String(),
+		ID:           id,
 		QuestionerID: questionerID,
-		ChallengeID:  challengeID,
 		Query:        query,
 	}
-	if err := db.C("question").Insert(question); err != nil {
-		return nil, fmt.Errorf("failed to insert a new question record: %v", err)
+	if err := db.Create(question).Error; err != nil {
+		return nil, err
 	}
 	return question, nil
 }
 
 //Update Update the Question Record
-func (question *Question) Update(questionerID string, answererID string, challengeID string, query string, answer string) error {
-	return db.C("question").UpdateId(question.ObjectID, bson.M{"$set": bson.M{"questioner_id": questionerID, "answerer_id": answererID, "challenge_id": challengeID, "query": query, "answer": answer}})
+func (question *Question) Update(questionerID string, answererID string, query string, answer string) error {
+	question.QuestionerID, question.AnswererID, question.Query, question.Answer = questionerID, answererID, query, answer
+	return db.Save(question).Error
 }

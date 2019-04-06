@@ -29,18 +29,12 @@
   version = "v3.2.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b8c4094429ef8fc618cd237a0ba017b999028385a2466cc2b88f38951ef61ef3"
-  name = "github.com/globalsign/mgo"
-  packages = [
-    ".",
-    "bson",
-    "internal/json",
-    "internal/sasl",
-    "internal/scram",
-  ]
+  digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
   pruneopts = "UT"
-  revision = "baa28fcb8e7d5dfab92026c0920cb6c9ae72faa2"
+  revision = "72cd26f257d44c1114970e19afddcd812016007e"
+  version = "v1.4.1"
 
 [[projects]]
   digest = "1:8caffcd8995b0eae7d2c18b2baefabef331bb05b1e16ed2b26b732c3349e6989"
@@ -63,6 +57,25 @@
   pruneopts = "UT"
   revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
   version = "v1.2.0"
+
+[[projects]]
+  digest = "1:420ec120a74b22e8a967f2a2928d89503e373848c0d4447d16ddbbbef9a9965c"
+  name = "github.com/jinzhu/gorm"
+  packages = [
+    ".",
+    "dialects/mysql",
+  ]
+  pruneopts = "UT"
+  revision = "472c70caa40267cb89fd8facb07fe6454b578626"
+  version = "v1.9.2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:fd97437fbb6b7dce04132cf06775bd258cce305c44add58eb55ca86c6c325160"
+  name = "github.com/jinzhu/inflection"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
   digest = "1:49668c7472c817bd834fd4dbd0d92b8c9ffdfc7b303285abc9060938dac79749"
@@ -209,9 +222,10 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:9cf45e754ab2dff5f53a553e6948b994ff738e4d1092ca608dcada945d8be0ef"
+  digest = "1:f40806967647e80fc51b941a586afefea6058592692c0bbfb3be7ea6b2b2a82d"
   name = "google.golang.org/appengine"
   packages = [
+    "cloudsql",
     "internal",
     "internal/base",
     "internal/datastore",
@@ -279,8 +293,8 @@
     "git.trapti.tech/CPCTF2019/webshell/rpc",
     "github.com/dghubble/oauth1",
     "github.com/dghubble/oauth1/twitter",
-    "github.com/globalsign/mgo",
-    "github.com/globalsign/mgo/bson",
+    "github.com/jinzhu/gorm",
+    "github.com/jinzhu/gorm/dialects/mysql",
     "github.com/labstack/echo",
     "github.com/labstack/echo/middleware",
     "github.com/satori/go.uuid",

@@ -31,9 +31,18 @@ type hintJSON struct {
 	Penalty int    `json:"penalty"`
 }
 
-func contains(slice []string, x string) bool {
+func containsHint(slice []*model.Hint, x *model.Hint) bool {
 	for _, y := range slice {
-		if x == y {
+		if x.ID == y.ID {
+			return true
+		}
+	}
+	return false
+}
+
+func containsUser(slice []*model.User, x *model.User) bool {
+	for _, y := range slice {
+		if x.ID == y.ID {
 			return true
 		}
 	}
@@ -41,16 +50,14 @@ func contains(slice []string, x string) bool {
 }
 
 func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSON, error) {
-	users, err := model.GetUsers()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get users: %v", err)
+	if challenge.Author == nil {
+		author, err := model.GetUserByID(challenge.AuthorID, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the author record: %v", err)
+		}
+		challenge.Author = author
 	}
-	usersMap := make(map[string]*model.User)
-	for _, u := range users {
-		usersMap[u.ID] = u
-	}
-	author := usersMap[challenge.AuthorID]
-	authorJSON, err := newUserJSON(me, author)
+	authorJSON, err := newUserJSON(me, challenge.Author)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse the author record: %v", err)
 	}
@@ -58,27 +65,26 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge) (*challengeJSO
 	score := challenge.Score
 	hintJSONs := make([]*hintJSON, len(challenge.Hints))
 	for i, hint := range challenge.Hints {
-		opened := contains(me.OpenedHintIDs, hint.ID)
+		opened := containsHint(me.OpenedHints, hint)
 		if opened {
 			score -= hint.Penalty
 		}
-		canISeeHint := !finish.After(now) || opened || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+		canISeeHint := !finish.After(now) || opened || containsUser(challenge.WhoSolved, me) || me.IsAuthor
 		hintJSONs[i] = &hintJSON{
 			ID:      hint.ID,
 			Caption: map[bool]string{true: hint.Caption}[canISeeHint],
 			Penalty: hint.Penalty,
 		}
 	}
-	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolvedIDs))
-	for i := 0; i < len(challenge.WhoSolvedIDs); i++ {
-		whoSolved := usersMap[challenge.WhoSolvedIDs[i]]
-		whoSolvedJSON, err := newUserJSON(me, whoSolved)
+	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolved))
+	for i := 0; i < len(challenge.WhoSolved); i++ {
+		whoSolvedJSON, err := newUserJSON(me, challenge.WhoSolved[i])
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse who solved record: %v", err)
 		}
 		whoSolvedJSONs[i] = whoSolvedJSON
 	}
-	canISeeAnswer := !finish.After(now) || contains(challenge.WhoSolvedIDs, me.ID) || me.IsAuthor
+	canISeeAnswer := !finish.After(now) || containsUser(challenge.WhoSolved, me) || me.IsAuthor
 	json := &challengeJSON{
 		ID:        challenge.ID,
 		Genre:     challenge.Genre,
@@ -127,7 +133,7 @@ func GetChallenge(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the challenge record: %v", err))
 	}
-	if me.ID != model.Nobody.ID && !contains(challenge.WhoSolvedIDs, me.ID) {
+	if me.ID != model.Nobody.ID && !containsUser(challenge.WhoSolved, me) {
 		me.SetLastSeenChallengeID(challengeID)
 		openProblemEventChan <- openProblemEvent{
 			EventName: "openProblem",
@@ -216,7 +222,7 @@ func CheckAnswer(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the challenge record: %v", err))
 	}
 	me := c.Get("me").(*model.User)
-	if contains(challenge.WhoSolvedIDs, me.ID) {
+	if containsUser(challenge.WhoSolved, me) {
 		return echo.NewHTTPError(http.StatusConflict, fmt.Sprintf("you already solved the challenge"))
 	}
 	req := &struct {
@@ -225,14 +231,14 @@ func CheckAnswer(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
-	if !contains(challenge.WhoChallengedIDs, me.ID) {
+	if !containsUser(challenge.WhoChallenged, me) {
 		challenge.AddWhoChallenged(me)
 	}
 	score := 0
 	if challenge.Flag == req.Flag {
 		score = challenge.Score
 		for _, hint := range challenge.Hints {
-			opened := contains(me.OpenedHintIDs, hint.ID)
+			opened := containsHint(me.OpenedHints, hint)
 			if opened {
 				score -= hint.Penalty
 			}
@@ -312,7 +318,7 @@ func PutVote(c echo.Context) error {
 	if user.ID != me.ID && !me.IsAuthor {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you are not the user"))
 	}
-	if !contains(challenge.WhoSolvedIDs, user.ID) {
+	if !containsUser(challenge.WhoSolved, user) {
 		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you have not solved the challenge yet"))
 	}
 	if err := challenge.PutVote(user.ID, req.Vote); err != nil {
