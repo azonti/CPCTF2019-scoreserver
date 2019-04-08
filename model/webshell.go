@@ -6,6 +6,7 @@ import (
 
 	webshell "git.trapti.tech/CPCTF2019/webshell/rpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var webShellConn *grpc.ClientConn
@@ -13,7 +14,13 @@ var webShellCli webshell.WebShellClient
 
 //InitWebShellCli Initialize Web Shell Client
 func InitWebShellCli() error {
-	conn, err := grpc.Dial(os.Getenv("WEBSHELL_GRPC_TARGET"), grpc.WithInsecure())
+	hostname := os.Getenv("WEBSHELL_GRPC_HOSTNAME")
+	port := os.Getenv("WEBSHELL_GRPC_PORT")
+	creds, err := credentials.NewClientTLSFromFile("lets-encrypt-x3-cross-signed.pem", hostname)
+	if err != nil {
+		panic(err)
+	}
+	conn, err := grpc.Dial(hostname+":"+port, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return fmt.Errorf("failed to connect webshell grpc: %v", err)
 	}

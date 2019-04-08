@@ -1,11 +1,13 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	webshell "git.trapti.tech/CPCTF2019/webshell/rpc"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/satori/go.uuid"
@@ -161,22 +163,21 @@ func (user *User) OpenHints(id []string) error {
 
 //RecreateWebShellContainer (Re)create the User's Web Shell Container
 func (user *User) RecreateWebShellContainer() error {
-	return fmt.Errorf("not implementated")
-	// ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	// defer cancel()
-	// webShellRes, err := webShellCli.Create(ctx, &webshell.Request{
-	// 	Id:          user.ID,
-	// 	ScreenName:  map[bool]string{true: user.TwitterScreenName, false: user.ID}[user.TwitterScreenName != ""],
-	// 	DisplayName: user.Name,
-	// })
-	// if err != nil {
-	// 	return err
-	// }
-	// if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
-	// 	return fmt.Errorf("failed to update the user record: %v", err)
-	// }
-	// user.WebShellPass = webShellRes.GetPassword()
-	// return nil
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	webShellRes, err := webShellCli.New(ctx, &webshell.Request{
+		Id:          user.ID,
+		ScreenName:  map[bool]string{true: user.TwitterScreenName, false: user.ID}[user.TwitterScreenName != ""],
+		DisplayName: user.Name,
+	})
+	if err != nil {
+		return err
+	}
+	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
+		return fmt.Errorf("failed to update the user record: %v", err)
+	}
+	user.WebShellPass = webShellRes.GetPassword()
+	return nil
 }
 
 //GetSolvedChallenges Get the Challenges which the User solved
