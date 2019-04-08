@@ -3,7 +3,7 @@
     <vue-headful title="Challenges | CPCTF2019" />
     <div class="toggle row">
       <div class="col-sm-4"><button :class="['btn', group == 'genre' ? 'btn-info' : 'btn-primary']" @click="group='genre'">Group by genre</button></div>
-      <div class="col-sm-4"><button :class="['btn', group == 'score' ? 'btn-info' : 'btn-primary']" @click="group='score'">Group by score</button></div>
+      <div class="col-sm-4"><button :class="['btn', group == 'difficulty' ? 'btn-info' : 'btn-primary']" @click="group='difficulty'">Group by difficulty</button></div>
       <div class="col-sm-4"><button :class="['btn', group == 'solveCount' ? 'btn-info' : 'btn-primary']" @click="group='solveCount'">Group by solve count</button></div>
     </div>
     <div class="toggle row">
@@ -80,9 +80,9 @@ const seasoner = {
   genre (obj) {
     return obj
   },
-  score (obj) {
+  difficulty (obj) {
     const nobj = {}
-    Object.keys(obj).sort().forEach(key => nobj[`${key} (${"★".repeat(key / 100)})`] = obj[key])
+    Object.keys(obj).sort().forEach(key => nobj[`${key*100} (${"★".repeat(key)})`] = obj[key])
     return nobj
   },
   solveCount (obj) {
@@ -101,7 +101,7 @@ export default {
       loading: true,
       hide: false,
       contestFinished: false,
-      grouped: {genre: {}, score: {}, solveCount: {}},
+      grouped: {genre: {}, difficulty: {}, solveCount: {}},
       group: "genre"
     }
   },
