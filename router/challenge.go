@@ -250,7 +250,7 @@ func PutChallenge(c echo.Context) error {
 		captions[i] = _hintJSON.Caption
 		penalties[i] = _hintJSON.Penalty
 	}
-	if err := challenge.Update(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer); err != nil {
+	if err := challenge.Update(req.Genre, req.Name, req.Author.ID, req.Score, req.Caption, captions, penalties, req.Flag, req.Answer, req.GroupID, req.IsComplete); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.NoContent(http.StatusNoContent)

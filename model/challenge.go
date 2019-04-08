@@ -87,6 +87,7 @@ func NewChallenge(genre string, name string, authorID string, score int, caption
 	challengeID := uuid.NewV4().String()
 	if groupID == "" {
 		groupID = uuid.NewV4().String()
+		isComplete = true
 	}
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
@@ -122,12 +123,12 @@ func (challenge *Challenge) Delete() error {
 }
 
 //Update Update the Challenge Record
-func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string) error {
+func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string, groupID string, isComplete bool) error {
 	hintBsons := make([]bson.M, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hintBsons[i] = bson.M{"id": challenge.ChallengeID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
 	}
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"genre": genre, "name": name, "author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer}}); err != nil {
+	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"genre": genre, "name": name, "author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer, "group_id": groupID, "is_complete": isComplete}}); err != nil {
 		return err
 	}
 	hints := make([]*Hint, len(captions))
@@ -138,7 +139,7 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 			Penalty: penalties[i],
 		}
 	}
-	challenge.Genre, challenge.Name, challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer = genre, name, authorID, score, caption, hints, flag, answer
+	challenge.Genre, challenge.Name, challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer, challenge.GroupID, challenge.IsComplete = genre, name, authorID, score, caption, hints, flag, answer, groupID, isComplete
 	return nil
 }
 
