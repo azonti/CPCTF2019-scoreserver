@@ -155,6 +155,9 @@ func GetChallengeGroups(c echo.Context) error {
 				tempDifficultys = []int{}
 			}
 			if challenges[i].IsComplete {
+				if temp != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("2 or more complete challenges is found: %s(%s)", challenges[i].GroupID, challenges[i].Name))
+				}
 				temp, err = newChallengeJSON(me, challenges[i])
 				if err != nil {
 					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the challenge record: %v", err))
