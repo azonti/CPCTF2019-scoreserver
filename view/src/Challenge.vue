@@ -42,7 +42,7 @@
                 <p class="well" v-else>Open hint #{{ index }} first.</p>
               </div>
               <div class="col-md-2">
-                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption)" class="btn btn-primary" style="width: 100%;" @click="hintToOpen = hint; openHintWarn = true;">Open Hint #{{ index+1 }}</button>
+                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption) && challenge.is_complete" class="btn btn-primary" style="width: 100%;" @click="hintToOpen = hint; openHintWarn = true;">Open Hint #{{ index+1 }}</button>
               </div>
             </div>
           </div>
