@@ -26,6 +26,9 @@ func InitWebShellCli() error {
 	}
 	webShellConn = conn
 	webShellCli = webshell.NewWebShellClient(conn)
+	if webShellCli == nil {
+		return fmt.Errorf("failed to NewWebShellClient")
+	}
 	return nil
 }
 

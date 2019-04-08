@@ -163,6 +163,9 @@ func (user *User) OpenHints(id []string) error {
 
 //RecreateWebShellContainer (Re)create the User's Web Shell Container
 func (user *User) RecreateWebShellContainer() error {
+	if webShellCli == nil {
+		return fmt.Errorf("failed to failed to connect webshell client")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	webShellRes, err := webShellCli.New(ctx, &webshell.Request{
