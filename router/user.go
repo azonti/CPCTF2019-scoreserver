@@ -220,6 +220,9 @@ func CheckCode(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		for _, challenge := range challenges {
+			if contains(challenge.WhoSolvedIDs, me.ID) {
+				continue
+			}
 			cnt := 0
 			hintID := challenge.ChallengeID + ":" + partedCode[3]
 			for _, openedHintID := range me.OpenedHintIDs {
