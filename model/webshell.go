@@ -18,7 +18,7 @@ func InitWebShellCli() error {
 	port := os.Getenv("WEBSHELL_GRPC_PORT")
 	creds, err := credentials.NewClientTLSFromFile("lets-encrypt-x3-cross-signed.pem", hostname)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to NewClientTLS: %v", err)
 	}
 	conn, err := grpc.Dial(hostname+":"+port, grpc.WithTransportCredentials(creds))
 	if err != nil {
