@@ -16,3 +16,5 @@
 
 scoreserver
 vendor/
+
+lets-encrypt-x3-cross-signed.pem

@@ -144,7 +144,7 @@ func (user *User) OpenHint(id string) error {
 func (user *User) RecreateWebShellContainer() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	webShellRes, err := webShellCli.Create(ctx, &webshell.Request{
+	webShellRes, err := webShellCli.New(ctx, &webshell.Request{
 		Id:          user.ID,
 		ScreenName:  map[bool]string{true: user.TwitterScreenName, false: user.ID}[user.TwitterScreenName != ""],
 		DisplayName: user.Name,
