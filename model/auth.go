@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-var authType = map[string]string{
+var authnType = map[string]string{
 	"twitter": "OAuth1.0a",
 }
 var oauth1Config = map[string]*oauth1.Config{
@@ -23,10 +23,11 @@ var oauth1Config = map[string]*oauth1.Config{
 
 //ErrUnknownProvider an Error due to an Unknown Provider
 var ErrUnknownProvider = fmt.Errorf("an unknown provider")
+var ErrDeniedAuthn = fmt.Errorf("denied authentication")
 
-//GetAuthoURL Get an Authorization URL
-func GetAuthoURL(provider string) (*url.URL, error) {
-	switch authType[provider] {
+//GetAuthnURL Get an Authentication URL
+func GetAuthnURL(provider string) (*url.URL, error) {
+	switch authnType[provider] {
 	case "OAuth1.0a":
 		requestToken, _, err := oauth1Config[provider].RequestToken()
 		if err != nil {
@@ -37,10 +38,13 @@ func GetAuthoURL(provider string) (*url.URL, error) {
 	return nil, ErrUnknownProvider
 }
 
-//GetAuthedUserID Get the Authenticated User's ID
-func GetAuthedUserID(provider string, query *url.Values) (string, error) {
-	switch authType[provider] {
+//GetAuthnedUserID Get the Authenticated User's ID
+func GetAuthnedUserID(provider string, query *url.Values) (string, error) {
+	switch authnType[provider] {
 	case "OAuth1.0a":
+		if query.Get("denied") != "" {
+			return "", ErrDeniedAuthn
+		}
 		requestToken, verifier := query.Get("oauth_token"), query.Get("oauth_verifier")
 		accessToken, accessTokenSecret, err := oauth1Config[provider].AccessToken(requestToken, "", verifier)
 		if err != nil {

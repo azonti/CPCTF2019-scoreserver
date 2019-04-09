@@ -126,7 +126,7 @@ export default {
         for (const key in data) {
           this.$set(this.challenge, key, data[key])
         }
-        this.flag = this.challenge.flag
+        this.flag = this.challenge.flags[this.challenge.flags.length-1].flag
         this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
       })
       .then(() => {
@@ -146,6 +146,9 @@ export default {
       return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
       .then(res => res.data).then((data) => {
         this.voted = data
+      })
+      .catch((err) => {
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
     },
     checkFlag () {

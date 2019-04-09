@@ -11,6 +11,7 @@ type Question struct {
 	ID           string `gorm:"primary_key"`
 	QuestionerID string
 	Questioner   *User `gorm:"foreignkey:QuestionerID"`
+	Publish      bool
 	AnswererID   string
 	Answerer     *User `gorm:"foreignkey:AnswererID"`
 	Query        string
@@ -44,9 +45,15 @@ func GetQuestionByID(id string) (*Question, error) {
 //NewQuestion Make a New Question Record
 func NewQuestion(questionerID string, query string) (*Question, error) {
 	id := uuid.NewV4().String()
+	questioner, err := GetUserByID(questionerID, false)
+	if err != nil {
+		return nil, err
+	}
 	question := &Question{
 		ID:           id,
 		QuestionerID: questionerID,
+		Publish:      false,
+		Questioner:   questioner,
 		Query:        query,
 	}
 	if err := db.Create(question).Error; err != nil {
@@ -56,7 +63,15 @@ func NewQuestion(questionerID string, query string) (*Question, error) {
 }
 
 //Update Update the Question Record
-func (question *Question) Update(questionerID string, answererID string, query string, answer string) error {
-	question.QuestionerID, question.AnswererID, question.Query, question.Answer = questionerID, answererID, query, answer
+func (question *Question) Update(questionerID string, publish bool, answererID string, query string, answer string) error {
+	questioner, err := GetUserByID(questionerID, false)
+	if err != nil {
+		return err
+	}
+	answerer, err := GetUserByID(answererID, false)
+	if err != nil {
+		return err
+	}
+	question.QuestionerID, question.Questioner, question.Publish, question.AnswererID, question.Answerer, question.Query, question.Answer = questionerID, questioner, publish, answererID, answerer, query, answer
 	return db.Save(question).Error
 }

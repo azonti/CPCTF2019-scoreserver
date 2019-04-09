@@ -103,7 +103,8 @@ export default {
     answerQuestion (publish) {
       this.answeringQuestion = true
       return api.put(`${process.env.API_URL_PREFIX}/questions/${this.questionToAnswer.id}`, {
-        questioner: publish ? undefined : this.questionToAnswer.questioner,
+        questioner: this.questionToAnswer.questioner,
+        publish,
         answerer: this.me,
         query: this.questionToAnswer.query,
         answer: this.questionToAnswer._answer

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" // mysql driver
 	"os"
@@ -9,21 +8,21 @@ import (
 
 var db *gorm.DB
 
-//InitDB Initialize Database
+//InitDB Initialize the Database
 func InitDB() error {
 	var err error
 	db, err = gorm.Open("mysql", os.Getenv("MARIADB_URL")+"?parseTime=True")
 	if err != nil {
-		return fmt.Errorf("failed to connect DB: %v", err)
-	}
-	db = db.Set("gorm:save_associations", false)
-	if err := db.AutoMigrate(&Challenge{}, &Hint{}, &Vote{}, &Question{}, &User{}).Error; err != nil {
 		return err
 	}
+	if err := db.AutoMigrate(&Challenge{}, &Hint{}, &Flag{}, &Vote{}, &Question{}, &User{}).Error; err != nil {
+		return err
+	}
+	db = db.Set("gorm:save_associations", false)
 	return nil
 }
 
-//TermDB Terminate Database
+//TermDB Terminate the Database
 func TermDB() {
 	db.Close()
 	return

@@ -26,9 +26,9 @@ type User struct {
 	IsAuthor              bool
 	IsOnsite              bool
 	Score                 int
-	ChallengedChallenges  []*Challenge `gorm:"many2many:user_challenged_challenges;"`
 	SolvedChallenges      []*Challenge `gorm:"many2many:user_solved_challenges;"`
 	OpenedHints           []*Hint      `gorm:"many2many:user_opened_hints;"`
+	FoundFlags            []*Flag      `gorm:"many2many:user_found_flags;"`
 	WebShellPass          string
 	LastSeenChallengeID   string
 	LastSeenChallenge     *Challenge `gorm:"foreignkey:LastSeenChallengeID"`
@@ -59,7 +59,7 @@ var ErrUserNotFound = gorm.ErrRecordNotFound
 //GetUsers Get All User Records
 func GetUsers() ([]*User, error) {
 	users := make([]*User, 0)
-	if err := db.Preload("ChallengedChallenges").Preload("SolvedChallenges").Preload("OpenedHints").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").Find(&users).Error; err != nil {
+	if err := db.Preload("SolvedChallenges").Preload("OpenedHints").Preload("FoundFlags").Preload("Votes").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -68,7 +68,7 @@ func GetUsers() ([]*User, error) {
 //GetUserByID Get the User Record by their ID
 func GetUserByID(id string, force bool) (*User, error) {
 	user := &User{}
-	err := db.Where(&User{ID: id}).Preload("ChallengedChallenges").Preload("SolvedChallenges").Preload("OpenedHints").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").First(user).Error
+	err := db.Where(&User{ID: id}).Preload("SolvedChallenges").Preload("SolvedChallenges.Author").Preload("OpenedHints").Preload("FoundFlags").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").First(user).Error
 	if err == gorm.ErrRecordNotFound && force {
 		name, iconURL, twitterScreenName, err := getUserInfo(id)
 		if err != nil {
@@ -92,7 +92,7 @@ func GetUserByID(id string, force bool) (*User, error) {
 //GetUserByToken Get the User Record by their Token
 func GetUserByToken(token string) (*User, error) {
 	user := new(User)
-	if err := db.Where(&User{Token: token}).Preload("ChallengedChallenges").Preload("SolvedChallenges").Preload("OpenedHints").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").First(user).Error; err != nil {
+	if err := db.Where(&User{Token: token}).Preload("SolvedChallenges").Preload("SolvedChallenges.Author").Preload("OpenedHints").Preload("FoundFlags").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").First(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -103,15 +103,15 @@ func (user *User) Delete() error {
 	return db.Delete(user).Error
 }
 
-//SetToken Set a Token
-func (user *User) SetToken() error {
+//PutToken Put a Token
+func (user *User) PutToken() error {
 	token, tokenExpires := uuid.NewV4().String(), time.Now().Add(24*time.Hour)
 	user.Token, user.TokenExpires = token, tokenExpires
 	return db.Save(user).Error
 }
 
-//RemoveToken Remove the Token
-func (user *User) RemoveToken() error {
+//DeleteToken Delete the Token
+func (user *User) DeleteToken() error {
 	user.Token = ""
 	return db.Save(user).Error
 }
@@ -133,11 +133,51 @@ func (user *User) MakeMeOnsite() error {
 
 //OpenHint Open the Hint
 func (user *User) OpenHint(id string) error {
-	hint := &Hint{}
-	if err := db.Where(&Hint{ID: id}).First(hint).Error; err != nil {
+	idSplit := strings.Split(id, ":")
+
+	tx := db.Begin()
+
+	hints := make([]*Hint, 0)
+	if err := tx.Where(&Hint{ChallengeID: idSplit[0]}).Model(user).Association("OpenedHints").Find(&hints).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
-	return db.Model(&user).Association("OpenedHints").Append(hint).Error
+	_flags := make([]*Flag, 0)
+	if err := tx.Where(&Flag{ChallengeID: idSplit[0]}).Model(user).Association("FoundFlags").Find(&_flags).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	hint := &Hint{}
+	if err := tx.Where(&Hint{ID: id}).First(hint).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	challenge := &Challenge{}
+	if err := tx.Where(&Challenge{ID: idSplit[0]}).Preload("Flags").Find(&challenge).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(user).Association("OpenedHints").Append(hint).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	user.Score += challenge.calcScore(append(hints, hint), _flags) - challenge.calcScore(hints, _flags)
+	user.OpenedHints = append(user.OpenedHints, hint)
+
+	if err := tx.Save(user).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //RecreateWebShellContainer (Re)create the User's Web Shell Container
@@ -154,16 +194,6 @@ func (user *User) RecreateWebShellContainer() error {
 	}
 	user.WebShellPass = webShellRes.GetPassword()
 	return db.Save(user).Error
-}
-
-//GetSolvedChallenges Get the Challenges which the User solved
-func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
-	return user.SolvedChallenges, nil
-}
-
-//GetScore Get the User's Score
-func (user *User) GetScore() (int, error) {
-	return user.Score, nil
 }
 
 //SetLastSeenChallengeID Set the Challenge's ID which the User Saw Last

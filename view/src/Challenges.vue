@@ -104,6 +104,7 @@ export default {
     }
   },
   created () {
+    this.contestFinished = Date.parse(process.env.FINISH_TIME) - Date.now() > 0 ? false : true
     setInterval(() => {this.contestFinished = Date.parse(process.env.FINISH_TIME) - Date.now() > 0 ? false : true;}, 5000)
     return api.get(`${process.env.API_URL_PREFIX}/challenges`)
     .then((res) => res.data)
