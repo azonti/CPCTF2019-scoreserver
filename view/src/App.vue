@@ -22,7 +22,7 @@
     </ul>
     <div v-show="newAnswer" class="alert alert-dismissible alert-success">
       <button type="button" class="close" @click="newAnswer = false">&times;</button>
-      Your new question has been answered! <router-link :to="{name: 'questions'}" @click.native="newAnswer = false">Check</router-link>
+      A new question has been answered! <router-link :to="{name: 'questions'}" @click.native="newAnswer = false">Check</router-link>
     </div>
     <router-view
       :me="me"
