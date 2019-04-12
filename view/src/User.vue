@@ -23,7 +23,7 @@
               <dt class="col-xs-4">Solved</dt>
               <dd class="col-xs-8">
                 <ul class="list-unstyled">
-                  <li class="solved-chals" v-for="_solved in solved"><router-link :to="{ name: 'challenge', params: { challenge_id: _solved.challenge_id } }" :class="'chal-name-' + _solved.genre">{{ _solved.name }}</router-link></li>
+                  <li class="solved-chals" v-for="_solved in solved"><router-link :to="{ name: 'challenge', params: { id: _solved.id } }" :class="'chal-name-' + _solved.genre">{{ _solved.name }}</router-link></li>
                 </ul>
               </dd>
             </dl>

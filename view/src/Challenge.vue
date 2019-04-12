@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="challenge.challenge_id">
+    <div v-if="challenge.id">
       <vue-headful :title="`${challenge.name} | CPCTF2019`" />
       <h1 :class="['chal-title', 'chal-name-' + challenge.genre]">{{ challenge.name }}</h1>
       <div class="row">
@@ -42,7 +42,7 @@
                 <p class="well" v-else>Open hint #{{ index }} first.</p>
               </div>
               <div class="col-md-2">
-                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption) && challenge.is_complete" class="btn btn-primary" style="width: 100%;" @click="hintToOpen = hint; openHintWarn = true;">Open Hint #{{ index+1 }}</button>
+                <button v-if="!openingHint && !hint.caption && (index == 0 || challenge.hints[index-1].caption)" class="btn btn-primary" style="width: 100%;" @click="hintToOpen = hint; openHintWarn = true;">Open Hint #{{ index+1 }}</button>
               </div>
             </div>
           </div>
@@ -56,7 +56,7 @@
           </div>
           <div class="row" style="margin-top: 20px">
             <div class="col-md-10">
-              <input class="form-control" v-model="flag" placeholder="FLAG_X00{FL4G_1S_H3RE}">
+              <input class="form-control" v-model="flag" placeholder="FLAG{FL4G_1S_H3RE}">
             </div>
             <div class="col-md-2">
               <button v-if="!checkingFlag && !challenge.answer" @click="checkFlag" class="btn btn-primary" style="width: 100%;">Check</button>
@@ -93,7 +93,7 @@ const api = axios.create({
 
 export default {
   props: [
-    'challenge_id',
+    'id',
     'me'
   ],
   data () {
@@ -110,9 +110,10 @@ export default {
   },
   created () {
     this.fetchChallenge()
+    this.fetchVote()
   },
   watch: {
-    challenge_id (val) {
+    id (val) {
       this.fetchChallenge()
     },
     me (val) {
@@ -121,13 +122,13 @@ export default {
   },
   methods: {
     fetchChallenge () {
-      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}`)
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
       .then(res => res.data).then((data) => {
         for (const key in data) {
           this.$set(this.challenge, key, data[key])
         }
-        this.flag = this.challenge.flag
-        this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}`
+        this.flag = this.challenge.flags[this.challenge.flags.length-1].flag
+        this.postURL = `${process.env.API_URL_PREFIX}/challenges/${this.id}`
       })
       .then(() => {
         if (this.$route.query.hide) {
@@ -143,14 +144,17 @@ export default {
       })
     },
     fetchVote () {
-      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}/votes/${this.me.id}`)
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
       .then(res => res.data).then((data) => {
         this.voted = data
+      })
+      .catch((err) => {
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
       })
     },
     checkFlag () {
       this.checkingFlag = true
-      return api.post(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}`, {
+      return api.post(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, {
         flag: this.flag
       })
       .then(() => {
@@ -166,7 +170,7 @@ export default {
     },
     vote (v) {
       this.voting = true
-      return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.challenge_id}/votes/${this.me.id}`, {
+      return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`, {
         vote: v
       })
       .then(() => {
@@ -183,7 +187,7 @@ export default {
     openHint () {
       this.openingHint = true
       return api.post(`${process.env.API_URL_PREFIX}/users/me`, {
-        code: `group_hint:${this.challenge.group_id}:${this.hintToOpen.id}`
+        code: `hint:${this.hintToOpen.id}`
       })
       .then(() => this.fetchChallenge())
       .catch((err) => {

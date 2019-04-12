@@ -1,0 +1,43 @@
+version: '3'
+services:
+  cpctf_server:
+    build: .
+    command: /bin/bash
+    tty: true
+    volumes:
+      - ".:/root/go/src/git.trapti.tech/CPCTF2019/scoreserver"
+    ports:
+      - "80:80"
+      - "2375:2375"
+    environment:
+      - TZ=Asia/Tokyo
+      - MARIADB_URL=root:@tcp(maria:3306)/server
+      - BIND_PORT=80
+      - GOPATH=/root/go
+      - API_URL_PREFIX=/api/1.0
+      - TWITTER_CONSUMER_KEY=oieCQsQa9qF7ZAaRxqGYPw2X7
+      - TWITTER_CONSUMER_SECRET=iWat6RXzYLaSbVB6eJZankyHSZVsUc8v3mmCw02pTvS8W2yqmu
+      - DEPLOY_URL=http://localhost:80
+      - START_TIME =2019-03-01T12:00:00+09:00
+      - FINISH_TIME=2019-04-14T12:00:00+09:00
+      - AUTHOR_CODE=Tr_4pc_PCtF
+      - ONSITE_CODE=welcome_to_traP
+      - PORT=3000
+      - WEBSHELL_GRPC_HOSTNAME=i123.tokyotech.org
+      - WEBSHELL_GRPC_PORT=443
+      - DOCKER_HOST=tcp://localhost:2375
+    depends_on:
+      - maria
+    links:
+      - maria:mariadb_url
+  maria:
+    build: ./maria
+    restart: always
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=server
+    expose:
+      - 3306
+
+volumes:
+  cpctf_server-data-eiya:

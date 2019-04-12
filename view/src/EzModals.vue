@@ -5,7 +5,7 @@
       :key="i"
       :show="show[i]"
       @close="$set(show, i, false)"
-      :modal="{ title: title, bodyClass: bodyClass, body: body }"
+      :modal="{ title: title, bodyClass: bodyClass, body: body === 'Message: undefined' ? 'network error' : body }"
     />
   </div>
 </template>

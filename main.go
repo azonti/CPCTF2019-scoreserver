@@ -22,8 +22,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to init Web Shell Client: %v\n", err)
 	}
 	defer model.TermWebShellCli()
+
 	e := echo.New()
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	router.SetupWs()
 
@@ -38,7 +38,6 @@ func main() {
 	g.GET("/auth/:provider/callback", router.AuthCallback, router.EnsureINotExist)
 	g.GET("/logout", router.Logout, router.EnsureIExist)
 	g.GET("/challenges", router.GetChallenges, router.EnsureContestStarted)
-	g.GET("/challenge_groups", router.GetChallengeGroups, router.EnsureContestStarted)
 	g.GET("/challenges/:challengeID", router.GetChallenge, router.EnsureContestStarted)
 	g.POST("/challenges", router.PostChallenge, router.EnsureIAmAuthor)
 	g.PUT("/challenges/:challengeID", router.PutChallenge, router.EnsureIAmAuthor)

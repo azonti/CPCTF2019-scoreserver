@@ -8,8 +8,7 @@ import (
 	"time"
 
 	webshell "git.trapti.tech/CPCTF2019/webshell/rpc"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -18,27 +17,34 @@ import (
 
 //User an User Record
 type User struct {
-	ObjectID              bson.ObjectId `bson:"_id"`
-	ID                    string        `bson:"id"`
-	Token                 string        `bson:"token"`
-	TokenExpires          time.Time     `bson:"token_expires"`
-	Name                  string        `bson:"name"`
-	IconURL               string        `bson:"icon_url"`
-	TwitterScreenName     string        `bson:"twitter_screen_name"`
-	IsAuthor              bool          `bson:"is_author"`
-	IsOnsite              bool          `bson:"is_onsite"`
-	OpenedHintIDs         []string      `bson:"opened_hint_ids"`
-	WebShellPass          string        `bson:"web_shell_pass"`
-	LastSeenChallengeID   string        `bson:"last_seen_challenge_id"`
-	LastSolvedChallengeID string        `bson:"last_solved_challenge_id"`
-	LastSolvedTime        time.Time     `bson:"last_solved_time"`
+	ID                    string `gorm:"primary_key"`
+	Token                 string
+	TokenExpires          time.Time
+	Name                  string
+	IconURL               string
+	TwitterScreenName     string
+	IsAuthor              bool
+	IsOnsite              bool
+	Score                 int
+	SolvedChallenges      []*Challenge `gorm:"many2many:user_solved_challenges;"`
+	OpenedHints           []*Hint      `gorm:"many2many:user_opened_hints;"`
+	FoundFlags            []*Flag      `gorm:"many2many:user_found_flags;"`
+	WebShellPass          string
+	LastSeenChallengeID   string
+	LastSeenChallenge     *Challenge `gorm:"foreignkey:LastSeenChallengeID"`
+	LastSolvedChallengeID string
+	LastSolvedChallenge   *Challenge `gorm:"foreignkey:LastSolvedChallengeID"`
+	LastSolvedTime        time.Time
+	Votes                 []*Vote
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	DeletedAt             *time.Time
 }
 
 //Nobody a User Record which does Not Exist Actually
 var Nobody = &User{
 	ID: "nobody",
 }
-
 var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 	"twitter": {
 		ClientID:     os.Getenv("TWITTER_CONSUMER_KEY"),
@@ -48,12 +54,12 @@ var appOnlyAuthConfig = map[string]*clientcredentials.Config{
 }
 
 //ErrUserNotFound an Error due to the User Not Found
-var ErrUserNotFound = fmt.Errorf("the user not found")
+var ErrUserNotFound = gorm.ErrRecordNotFound
 
 //GetUsers Get All User Records
 func GetUsers() ([]*User, error) {
-	var users []*User
-	if err := db.C("user").Find(nil).All(&users); err != nil {
+	users := make([]*User, 0)
+	if err := db.Preload("SolvedChallenges").Preload("OpenedHints").Preload("FoundFlags").Preload("Votes").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -61,34 +67,23 @@ func GetUsers() ([]*User, error) {
 
 //GetUserByID Get the User Record by their ID
 func GetUserByID(id string, force bool) (*User, error) {
-	if force {
-		n, err := db.C("user").Find(bson.M{"id": id}).Count()
-		if err != nil {
-			return nil, fmt.Errorf("failed to check the user record existence: %v", err)
-		}
-		if n == 0 {
-			name, iconURL, twitterScreenName, err := getUserInfo(id)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get the user's information: %v", err)
-			}
-			user := &User{
-				ObjectID:          bson.NewObjectId(),
-				ID:                id,
-				Name:              name,
-				IconURL:           iconURL,
-				TwitterScreenName: twitterScreenName,
-			}
-			if err := db.C("user").Insert(user); err != nil {
-				return nil, fmt.Errorf("failed to insert a new user record: %v", err)
-			}
-			return user, nil
-		}
-	}
 	user := &User{}
-	if err := db.C("user").Find(bson.M{"id": id}).One(user); err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, ErrUserNotFound
+	err := db.Where(&User{ID: id}).Preload("SolvedChallenges").Preload("SolvedChallenges.Author").Preload("OpenedHints").Preload("FoundFlags").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").First(user).Error
+	if err == gorm.ErrRecordNotFound && force {
+		name, iconURL, twitterScreenName, err := getUserInfo(id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the user's information: %v", err)
 		}
+		user = &User{
+			ID:                id,
+			Name:              name,
+			IconURL:           iconURL,
+			TwitterScreenName: twitterScreenName,
+		}
+		if err := db.Create(user).Error; err != nil {
+			return nil, err
+		}
+	} else if err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -96,11 +91,8 @@ func GetUserByID(id string, force bool) (*User, error) {
 
 //GetUserByToken Get the User Record by their Token
 func GetUserByToken(token string) (*User, error) {
-	user := &User{}
-	if err := db.C("user").Find(bson.M{"token": token, "token_expires": bson.M{"$gte": time.Now()}}).One(user); err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, ErrUserNotFound
-		}
+	user := new(User)
+	if err := db.Where(&User{Token: token}).Preload("SolvedChallenges").Preload("SolvedChallenges.Author").Preload("OpenedHints").Preload("FoundFlags").Preload("LastSeenChallenge").Preload("LastSolvedChallenge").Preload("Votes").First(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -108,35 +100,26 @@ func GetUserByToken(token string) (*User, error) {
 
 //Delete Delete the User Record
 func (user *User) Delete() error {
-	return db.C("user").RemoveId(user.ObjectID)
+	return db.Delete(user).Error
 }
 
-//SetToken Set a Token
-func (user *User) SetToken() error {
+//PutToken Put a Token
+func (user *User) PutToken() error {
 	token, tokenExpires := uuid.NewV4().String(), time.Now().Add(24*time.Hour)
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"token": token, "token_expires": tokenExpires}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
 	user.Token, user.TokenExpires = token, tokenExpires
-	return nil
+	return db.Save(user).Error
 }
 
-//RemoveToken Remove the Token
-func (user *User) RemoveToken() error {
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"token": ""}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
+//DeleteToken Delete the Token
+func (user *User) DeleteToken() error {
 	user.Token = ""
-	return nil
+	return db.Save(user).Error
 }
 
-//MakeMeAuthor Make the User a Author
+//MakeMeAuthor Make the User an Author
 func (user *User) MakeMeAuthor() error {
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_author": true}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
 	user.IsAuthor = true
-	return nil
+	return db.Save(user).Error
 }
 
 //MakeMeOnsite Make the User Onsite
@@ -144,28 +127,61 @@ func (user *User) MakeMeOnsite() error {
 	if err := user.RecreateWebShellContainer(); err != nil {
 		return fmt.Errorf("failed to create the user's web shell container: %v", err)
 	}
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"is_onsite": true}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
 	user.IsOnsite = true
-	return nil
+	return db.Save(user).Error
 }
 
 //OpenHint Open the Hint
-func (user *User) OpenHints(id []string) error {
-	newOpenedHintIDs := append(user.OpenedHintIDs, id...)
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"opened_hint_ids": newOpenedHintIDs}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
+func (user *User) OpenHint(id string) error {
+	idSplit := strings.Split(id, ":")
+
+	tx := db.Begin()
+
+	hints := make([]*Hint, 0)
+	if err := tx.Where(&Hint{ChallengeID: idSplit[0]}).Model(user).Association("OpenedHints").Find(&hints).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
-	user.OpenedHintIDs = newOpenedHintIDs
+	_flags := make([]*Flag, 0)
+	if err := tx.Where(&Flag{ChallengeID: idSplit[0]}).Model(user).Association("FoundFlags").Find(&_flags).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	hint := &Hint{}
+	if err := tx.Where(&Hint{ID: id}).First(hint).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	challenge := &Challenge{}
+	if err := tx.Where(&Challenge{ID: idSplit[0]}).Preload("Flags").Find(&challenge).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Model(user).Association("OpenedHints").Append(hint).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	user.Score += challenge.calcScore(append(hints, hint), _flags) - challenge.calcScore(hints, _flags)
+	user.OpenedHints = append(user.OpenedHints, hint)
+
+	if err := tx.Save(user).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
 	return nil
 }
 
 //RecreateWebShellContainer (Re)create the User's Web Shell Container
 func (user *User) RecreateWebShellContainer() error {
-	if webShellCli == nil {
-		return fmt.Errorf("failed to failed to connect webshell client")
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	webShellRes, err := webShellCli.New(ctx, &webshell.Request{
@@ -176,82 +192,14 @@ func (user *User) RecreateWebShellContainer() error {
 	if err != nil {
 		return err
 	}
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"web_shell_pass": webShellRes.GetPassword()}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
 	user.WebShellPass = webShellRes.GetPassword()
-	return nil
-}
-
-//GetSolvedChallenges Get the Challenges which the User solved
-func (user *User) GetSolvedChallenges() ([]*Challenge, error) {
-	pipe := db.C("challenge").Pipe([]bson.M{
-		{"$match": bson.M{"who_solved_ids": user.ID}},
-	})
-	var challenges []*Challenge
-	if err := pipe.All(&challenges); err != nil {
-		return nil, err
-	}
-	return challenges, nil
-}
-
-var scoreCache = map[string]int{}
-
-//GetScore Get the User's Score
-func (user *User) GetScore() (int, error) {
-	if v, ok := scoreCache[user.ID]; ok {
-		return v, nil
-	}
-	rawScorePipe, penaltyPipe := db.C("challenge").Pipe([]bson.M{
-		{"$project": bson.M{"score": 1, "who_pointed_ids": 1}},
-		{"$match": bson.M{"who_pointed_ids": user.ID}},
-		{"$group": bson.M{"_id": "score", "score": bson.M{"$sum": "$score"}}},
-	}), db.C("challenge").Pipe([]bson.M{
-		{"$project": bson.M{"hints": 1, "who_pointed_ids": 1}},
-		{"$match": bson.M{"who_pointed_ids": user.ID}},
-		{"$unwind": "$hints"},
-		{"$match": bson.M{"hints.id": bson.M{"$in": user.OpenedHintIDs}}},
-		{"$group": bson.M{"_id": "penalty", "penalty": bson.M{"$sum": "$hints.penalty"}}},
-	})
-	rawScore, penalty := &struct {
-		ObjectID string `bson:"_id"`
-		Score    int    `bson:"score"`
-	}{}, &struct {
-		ObjectID string `bson:"_id"`
-		Penalty  int    `bson:"penalty"`
-	}{}
-	if err := rawScorePipe.One(rawScore); err != nil {
-		if err != mgo.ErrNotFound {
-			return 0, fmt.Errorf("failed to get the user's raw score: %v", err)
-		}
-		rawScore.Score = 0
-	}
-	if err := penaltyPipe.One(penalty); err != nil {
-		if err != mgo.ErrNotFound {
-			return 0, fmt.Errorf("failed to get the user's penalty: %v", err)
-		}
-		penalty.Penalty = 0
-	}
-	scoreCache[user.ID] = rawScore.Score - penalty.Penalty
-	return scoreCache[user.ID], nil
-}
-
-func (user *User) setLastSolvedChallengeID(challengeID string) error {
-	now := time.Now()
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"last_solved_challenge_id": challengeID, "last_solved_time": now}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
-	user.LastSolvedChallengeID, user.LastSolvedTime = challengeID, now
-	return nil
+	return db.Save(user).Error
 }
 
 //SetLastSeenChallengeID Set the Challenge's ID which the User Saw Last
 func (user *User) SetLastSeenChallengeID(challengeID string) error {
-	if err := db.C("user").UpdateId(user.ObjectID, bson.M{"$set": bson.M{"last_seen_challenge_id": challengeID}}); err != nil {
-		return fmt.Errorf("failed to update the user record: %v", err)
-	}
 	user.LastSeenChallengeID = challengeID
-	return nil
+	return db.Save(user).Error
 }
 
 func getUserInfo(id string) (string, string, string, error) {

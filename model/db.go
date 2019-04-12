@@ -1,36 +1,30 @@
 package model
 
 import (
-	"fmt"
 	"os"
-	"time"
 
-	"github.com/globalsign/mgo"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql" // mysql driver
 )
 
-var mgoSess *mgo.Session
-var db *mgo.Database
+var db *gorm.DB
 
-//InitDB Initialize Database
+//InitDB Initialize the Database
 func InitDB() error {
-	mongoInfo := &mgo.DialInfo{
-		Addrs:    []string{os.Getenv("MONGODB_URL")},
-		Timeout:  20 * time.Second,
-		Database: os.Getenv("MONGODB_DATABASE"),
-		Username: os.Getenv("MONGODB_USERNAME"),
-		Password: os.Getenv("MONGODB_PASSWORD"),
-	}
-	sess, err := mgo.DialWithInfo(mongoInfo)
+	var err error
+	db, err = gorm.Open("mysql", os.Getenv("MARIADB_URL")+"?parseTime=True")
 	if err != nil {
-		return fmt.Errorf("failed to establish DB session: %v", err)
+		return err
 	}
-	mgoSess = sess
-	db = mgoSess.DB("")
+	if err := db.AutoMigrate(&Challenge{}, &Hint{}, &Flag{}, &Vote{}, &Question{}, &User{}).Error; err != nil {
+		return err
+	}
+	db = db.Set("gorm:save_associations", false)
 	return nil
 }
 
-//TermDB Terminate Database
+//TermDB Terminate the Database
 func TermDB() {
-	mgoSess.Close()
+	db.Close()
 	return
 }

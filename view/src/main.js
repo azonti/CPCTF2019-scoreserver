@@ -40,7 +40,7 @@ const router = new Router({
       component: Challenges
     },
     {
-      path: '/challenges/:challenge_id',
+      path: '/challenges/:id',
       name: 'challenge',
       props: true,
       component: Challenge

@@ -23,12 +23,6 @@
               <input class="form-control" v-model="name" placeholder="Challenge name">
             </div>
           </div>
-          <h3>Group ID</h3>
-          <div class="row">
-            <div class="col-md-10">
-              <input class="form-control" v-model="group_id" placeholder="Group ID">
-            </div>
-          </div>
           <h3>Genre</h3>
           <div class="row">
             <div class="col-md-10">
@@ -41,16 +35,10 @@
               <input class="form-control" v-model="score" placeholder="X00">
             </div>
           </div>
-          <h3>部分点問題の場合はチェック</h3>
+          <h3>Flags</h3>
           <div class="row">
             <div class="col-md-10">
-              <input type="checkbox" v-model="is_not_complete">
-            </div>
-          </div>
-          <h3>Flag</h3>
-          <div class="row">
-            <div class="col-md-10">
-              <input class="form-control" v-model="flag" placeholder="FLAG_X00{THIS_IS_FLAG}">
+              <textarea v-model="flags_text" placeholder="FLAG_X00{FLAG1}\nFLAG_X00{FLAG2}" cols="60" rows="5"></textarea>
             </div>
           </div>
           <h3>問題文</h3>
@@ -86,7 +74,7 @@
       </div>
     </div>
     <div v-else>
-      <p class="loading">Loading ...</p>
+      <p class="loading">ERROR ...</p>
     </div>
   </div>
 </template>
@@ -111,11 +99,10 @@ export default {
   data () {
     return {
       name:       '',
-      group_id:   '',
       genre:      '',
       score:      '',
     	is_not_complete:false,
-      flag:       '',
+      flags_text: '',
       caption:    '',
       hints:      [],
       sendingCode: false,
@@ -138,15 +125,24 @@ export default {
           penalty:score * penalty_percent[i] / 100
         }
       }
+      var flags = this.flags_text.split(/\r\n|\n/);
+      var flags_tmp = []
+      for (var i = 0; i < flags.length; i++) {
+        flags_tmp[i] = {
+          id:this.name+":"+i.toString(),
+          score:parseInt(flags[i].substring(5,8),10),
+          flag:flags[i]
+        }
+      }
+
       console.log("run api.post")
       return api.post(`${process.env.API_URL_PREFIX}/challenges`, { 
           name:       this.name,
-          group_id:   this.group_id,
           author:     {id: this.me.id},
           genre:      this.genre,
           score:      score,
           is_complete:!this.is_complete,
-          flag:       this.flag,
+          flags:       flags_tmp,
           caption:    this.caption,
           hints:      hints_tmp,
           answer:     this.flag

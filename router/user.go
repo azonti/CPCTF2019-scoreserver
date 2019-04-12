@@ -23,11 +23,7 @@ type userJSON struct {
 	WebShellPass      string `json:"web_shell_pass"`
 }
 
-func newUserJSON(me *model.User, user *model.User) (*userJSON, error) {
-	score, err := user.GetScore()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get the user's score: %v", err)
-	}
+func newUserJSON(me *model.User, user *model.User) *userJSON {
 	canISeePass := me.ID == user.ID || me.IsAuthor
 	json := &userJSON{
 		ID:                user.ID,
@@ -36,10 +32,10 @@ func newUserJSON(me *model.User, user *model.User) (*userJSON, error) {
 		TwitterScreenName: user.TwitterScreenName,
 		IsAuthor:          user.IsAuthor,
 		IsOnsite:          user.IsOnsite,
-		Score:             score,
+		Score:             user.Score,
 		WebShellPass:      map[bool]string{true: user.WebShellPass}[canISeePass],
 	}
-	return json, nil
+	return json
 }
 
 //DetermineMe Determine Who am I
@@ -105,21 +101,21 @@ func GetUsers(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+
 	me := c.Get("me").(*model.User)
 	jsons := make([]*userJSON, len(users))
 	for i := 0; i < len(users); i++ {
-		json, err := newUserJSON(me, users[i])
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the user record: %v", err))
-		}
-		jsons[i] = json
+		jsons[i] = newUserJSON(me, users[i])
 	}
+
 	return c.JSON(http.StatusOK, jsons)
 }
 
 //GetUser the Method Handler of "GET /users/:userID"
 func GetUser(c echo.Context) error {
 	userID := c.Param("userID")
+	me := c.Get("me").(*model.User)
+
 	user, err := model.GetUserByID(userID, false)
 	if err != nil {
 		if err == model.ErrUserNotFound {
@@ -127,34 +123,34 @@ func GetUser(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	me := c.Get("me").(*model.User)
-	json, err := newUserJSON(me, user)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the user record: %v", err))
-	}
+
+	json := newUserJSON(me, user)
+
 	return c.JSON(http.StatusOK, json)
 }
 
 //GetMe the Method Handler of "GET /users/me"
 func GetMe(c echo.Context) error {
 	me := c.Get("me").(*model.User)
-	json, err := newUserJSON(me, me)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the user record: %v", err))
-	}
+
+	json := newUserJSON(me, me)
+
 	return c.JSON(http.StatusOK, json)
 }
 
 //CheckCode the Method Handler of "POST /users/me"
 func CheckCode(c echo.Context) error {
+	me := c.Get("me").(*model.User)
+
 	req := &struct {
 		Code string `form:"code"`
 	}{}
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("failed to bind request body: %v", err))
 	}
-	me := c.Get("me").(*model.User)
+
 	now, finish := time.Now(), model.FinishTime()
+
 	switch req.Code {
 	case os.Getenv("AUTHOR_CODE"):
 		if err := me.MakeMeAuthor(); err != nil {
@@ -180,7 +176,6 @@ func CheckCode(c echo.Context) error {
 	}
 	switch {
 	case strings.HasPrefix(req.Code, "hint:"):
-		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("please use group_hint"))
 		if !finish.After(now) && !me.IsAuthor {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
 		}
@@ -190,55 +185,18 @@ func CheckCode(c echo.Context) error {
 		}
 		hintID := strings.Join(partedCode[1:], ":")
 		cnt := 0
-		for _, openedHintID := range me.OpenedHintIDs {
-			if hintID == openedHintID {
+		for _, openedHint := range me.OpenedHints {
+			if hintID == openedHint.ID {
 				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
 			}
-			if strings.HasPrefix(openedHintID, partedCode[1]+":") {
+			if strings.HasPrefix(openedHint.ID, partedCode[1]+":") {
 				cnt++
 			}
 		}
 		if strconv.Itoa(cnt) != partedCode[2] {
 			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you cannot open this hint yet"))
 		}
-		if err := me.OpenHints([]string{hintID}); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-		return c.NoContent(http.StatusNoContent)
-	case strings.HasPrefix(req.Code, "group_hint:"):
-		if !finish.After(now) && !me.IsAuthor {
-			return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("the contest has finished"))
-		}
-		partedCode := strings.Split(req.Code, ":")
-		if len(partedCode) != 4 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid hint code"))
-		}
-		groupID := partedCode[1]
-		openHintIDs := []string{}
-		challenges, err := model.GetChallengeByGroupID(groupID)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-		for _, challenge := range challenges {
-			if contains(challenge.WhoSolvedIDs, me.ID) {
-				continue
-			}
-			cnt := 0
-			hintID := challenge.ChallengeID + ":" + partedCode[3]
-			for _, openedHintID := range me.OpenedHintIDs {
-				if hintID == openedHintID {
-					return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("already opened"))
-				}
-				if strings.HasPrefix(openedHintID, challenge.ChallengeID+":") {
-					cnt++
-				}
-			}
-			if strconv.Itoa(cnt) != partedCode[3] {
-				return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("you cannot open this hint yet"))
-			}
-			openHintIDs = append(openHintIDs, hintID)
-		}
-		if err := me.OpenHints(openHintIDs); err != nil {
+		if err := me.OpenHint(hintID); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusNoContent)
@@ -250,6 +208,8 @@ func CheckCode(c echo.Context) error {
 //GetSolvedChallenges the Method Handler of "GET /users/:userID/solved"
 func GetSolvedChallenges(c echo.Context) error {
 	userID := c.Param("userID")
+	me := c.Get("me").(*model.User)
+
 	user, err := model.GetUserByID(userID, false)
 	if err != nil {
 		if err == model.ErrUserNotFound {
@@ -257,25 +217,21 @@ func GetSolvedChallenges(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
 	}
-	challenges, err := user.GetSolvedChallenges()
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+
+	solvedMap, openedMap, foundMap := makeSolvedOpenedFoundMaps(me)
+	jsons := make([]*challengeJSON, len(user.SolvedChallenges))
+	for i, challenge := range user.SolvedChallenges {
+		jsons[i] = newChallengeJSON(me, challenge, solvedMap, openedMap, foundMap)
 	}
-	jsons := make([]*challengeJSON, len(challenges))
-	me := c.Get("me").(*model.User)
-	for i, challenge := range challenges {
-		json, err := newChallengeJSON(me, challenge)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to parse a challenge: %v", err))
-		}
-		jsons[i] = json
-	}
+
 	return c.JSON(http.StatusOK, jsons)
 }
 
 //GetLastSolvedChallenge the Method Handler of "GET /user/:userID/solved/last"
 func GetLastSolvedChallenge(c echo.Context) error {
 	userID := c.Param("userID")
+	me := c.Get("me").(*model.User)
+
 	user, err := model.GetUserByID(userID, false)
 	if err != nil {
 		if err == model.ErrUserNotFound {
@@ -283,18 +239,14 @@ func GetLastSolvedChallenge(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
 	}
+
 	if user.LastSolvedChallengeID == "" {
 		return c.NoContent(http.StatusNoContent)
 	}
-	challenge, err := model.GetChallengeByID(user.LastSolvedChallengeID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the last solved challenge record: %v", err))
-	}
-	me := c.Get("me").(*model.User)
-	json, err := newChallengeJSON(me, challenge)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the last solved challenge record: %v", err))
-	}
+
+	solvedMap, openedMap, foundMap := makeSolvedOpenedFoundMaps(me)
+	json := newChallengeJSON(me, user.LastSolvedChallenge, solvedMap, openedMap, foundMap)
+
 	c.Response().Header().Set(echo.HeaderLastModified, user.LastSolvedTime.UTC().Format(http.TimeFormat))
 	return c.JSON(http.StatusOK, json)
 }
@@ -302,6 +254,8 @@ func GetLastSolvedChallenge(c echo.Context) error {
 //GetLastSeenChallenge the Method Handler of "GET /user/:userID/lastseen"
 func GetLastSeenChallenge(c echo.Context) error {
 	userID := c.Param("userID")
+	me := c.Get("me").(*model.User)
+
 	user, err := model.GetUserByID(userID, false)
 	if err != nil {
 		if err == model.ErrUserNotFound {
@@ -309,17 +263,13 @@ func GetLastSeenChallenge(c echo.Context) error {
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the user record: %v", err))
 	}
+
 	if user.LastSeenChallengeID == "" {
 		return c.NoContent(http.StatusNoContent)
 	}
-	challenge, err := model.GetChallengeByID(user.LastSeenChallengeID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to get the last seen challenge record: %v", err))
-	}
-	me := c.Get("me").(*model.User)
-	json, err := newChallengeJSON(me, challenge)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("failed to parse the last seen challenge record: %v", err))
-	}
+
+	solvedMap, openedMap, foundMap := makeSolvedOpenedFoundMaps(me)
+	json := newChallengeJSON(me, user.LastSeenChallenge, solvedMap, openedMap, foundMap)
+
 	return c.JSON(http.StatusOK, json)
 }

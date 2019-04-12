@@ -1,246 +1,278 @@
 package model
 
 import (
-	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
 )
 
 //Challenge a Challenge Record
 type Challenge struct {
-	ObjectID         bson.ObjectId `bson:"_id"`
-	ChallengeID      string        `bson:"challenge_id"`
-	GroupID          string        `bson:"group_id"`
-	Genre            string        `bson:"genre"`
-	Name             string        `bson:"name"`
-	AuthorID         string        `bson:"author_id"`
-	Score            int           `bson:"score"`
-	Caption          string        `bson:"caption"`
-	Hints            []*Hint       `bson:"hints"`
-	Flag             string        `bson:"flag"`
-	Answer           string        `bson:"answer"`
-	WhoSolvedIDs     []string      `bson:"who_solved_ids"`
-	WhoChallengedIDs []string      `bson:"who_challenged_ids"`
-	WhoPointedIDs    []string      `bson:"who_pointed_ids"`
-	IsComplete       bool          `bson:"is_complete"`
+	ID            string `gorm:"primary_key"`
+	Genre         string
+	Name          string
+	AuthorID      string
+	Author        *User `gorm:"foreignkey:AuthorID"`
+	Score         int
+	Caption       string `sql:"type:varchar(1500);"`
+	Hints         []*Hint
+	Flags         []*Flag
+	Answer        string
+	WhoSolved     []*User `gorm:"many2many:user_solved_challenges;"`
+	WhoChallenged []*User `gorm:"many2many:user_challenged_challenges;"`
+	Votes         []*Vote
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     *time.Time
+}
+
+//Flag a Flag Record
+type Flag struct {
+	ID          string `gorm:"primary_key"`
+	ChallengeID string
+	Flag        string
+	Score       int
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 }
 
 //Hint a Hint Record
 type Hint struct {
-	ID      string `bson:"id"`
-	Caption string `bson:"caption"`
-	Penalty int    `bson:"penalty"`
+	ID          string `gorm:"primary_key"`
+	ChallengeID string
+	Caption     string `sql:"type:varchar(3000);"`
+	Penalty     int
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 }
 
 //Vote a Vote Record
 type Vote struct {
-	ObjectID    bson.ObjectId `bson:"_id"`
-	ChallengeID string        `bson:"challenge_id"`
-	UserID      string        `bson:"user_id"`
-	VoteStr     string        `bson:"vote"`
+	gorm.Model
+	ChallengeID string `gorm:"unique_index:idx_challenge_id_user_id"`
+	UserID      string `gorm:"unique_index:idx_challenge_id_user_id"`
+	Vote        string
 }
 
 //ErrChallengeNotFound an Error due to the Challenge Not Found
-var ErrChallengeNotFound = fmt.Errorf("the challenge not found")
+var ErrChallengeNotFound = gorm.ErrRecordNotFound
 
 //GetChallenges Get All Challenge Records
 func GetChallenges() ([]*Challenge, error) {
-	var challenges []*Challenge
-	if err := db.C("challenge").Find(nil).All(&challenges); err != nil {
+	challenges := make([]*Challenge, 0)
+	if err := db.Preload("Author").Preload("Hints").Preload("Flags").Preload("WhoSolved").Preload("WhoChallenged").Preload("Votes").Find(&challenges).Error; err != nil {
 		return nil, err
 	}
 	return challenges, nil
 }
 
-//GetChallengeByID Get the Challenge Record by its ChallengeID
-func GetChallengeByID(challengeID string) (*Challenge, error) {
+//GetChallengeByID Get the Challenge Record by its ID
+func GetChallengeByID(id string) (*Challenge, error) {
 	challenge := &Challenge{}
-	if err := db.C("challenge").Find(bson.M{"challenge_id": challengeID}).One(challenge); err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, ErrChallengeNotFound
-		}
+	if err := db.Where(&Challenge{ID: id}).Preload("Author").Preload("Hints").Preload("Flags").Preload("WhoSolved").Preload("WhoChallenged").Preload("Votes").First(challenge).Error; err != nil {
 		return nil, err
 	}
 	return challenge, nil
 }
 
-//GetChallengeByGroupID Get the Challenge Record by its GroupID
-func GetChallengeByGroupID(groupID string) ([]*Challenge, error) {
-	var challenges []*Challenge
-	if err := db.C("challenge").Find(bson.M{"group_id": groupID}).All(&challenges); err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, ErrChallengeNotFound
-		}
-		return nil, err
-	}
-	if len(challenges) == 0 {
-		return nil, ErrChallengeNotFound
-	}
-	return challenges, nil
-}
-
 //NewChallenge Make a New Challenge Record
-func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string, groupID string, isComplete bool) (*Challenge, error) {
-	challengeID := uuid.NewV4().String()
-	if groupID == "" {
-		groupID = uuid.NewV4().String()
-		isComplete = true
-	}
+func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flags []string, scores []int, answer string) (*Challenge, error) {
+	id := uuid.NewV4().String()
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
-			ID:      challengeID + ":" + strconv.Itoa(i),
+			ID:      id + ":" + strconv.Itoa(i),
 			Caption: captions[i],
 			Penalty: penalties[i],
 		}
 	}
+	_flags := make([]*Flag, len(flags))
+	for i := 0; i < len(flags); i++ {
+		_flags[i] = &Flag{
+			ID:    id + ":" + strconv.Itoa(i),
+			Flag:  flags[i],
+			Score: scores[i],
+		}
+	}
+
+	tx := db.Begin()
+
+	author := &User{}
+	if err := tx.Where(&User{ID: authorID}).First(author).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	challenge := &Challenge{
-		ObjectID:    bson.NewObjectId(),
-		ChallengeID: challengeID,
-		GroupID:     groupID,
-		Genre:       genre,
-		Name:        name,
-		AuthorID:    authorID,
-		Score:       score,
-		Caption:     caption,
-		Hints:       hints,
-		Flag:        flag,
-		Answer:      answer,
-		IsComplete:  isComplete,
+		ID:      id,
+		Genre:   genre,
+		Name:    name,
+		Author:  author,
+		Score:   score,
+		Caption: caption,
+		Hints:   hints,
+		Flags:   _flags,
+		Answer:  answer,
 	}
-	if err := db.C("challenge").Insert(challenge); err != nil {
-		return nil, fmt.Errorf("failed to insert a new challenge record: %v", err)
+	if err := tx.Set("gorm:save_associations", true).Create(challenge).Error; err != nil {
+		tx.Rollback()
+		return nil, err
 	}
-	return challenge, nil
+
+	return challenge, tx.Commit().Error
 }
 
 //Delete Delete the Challenge Record
 func (challenge *Challenge) Delete() error {
-	return db.C("challenge").RemoveId(challenge.ObjectID)
+	return db.Delete(challenge).Error
 }
 
 //Update Update the Challenge Record
-func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flag string, answer string, groupID string, isComplete bool) error {
-	hintBsons := make([]bson.M, len(captions))
-	for i := 0; i < len(captions); i++ {
-		hintBsons[i] = bson.M{"id": challenge.ChallengeID + ":" + strconv.Itoa(i), "caption": captions[i], "penalty": penalties[i]}
-	}
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"genre": genre, "name": name, "author_id": authorID, "score": score, "caption": caption, "hints": hintBsons, "flag": flag, "answer": answer, "group_id": groupID, "is_complete": isComplete}}); err != nil {
-		return err
-	}
+func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flags []string, scores []int, answer string) error {
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
-			ID:      challenge.ChallengeID + ":" + strconv.Itoa(i),
+			ID:      challenge.ID + ":" + strconv.Itoa(i),
 			Caption: captions[i],
 			Penalty: penalties[i],
 		}
 	}
-	challenge.Genre, challenge.Name, challenge.AuthorID, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flag, challenge.Answer, challenge.GroupID, challenge.IsComplete = genre, name, authorID, score, caption, hints, flag, answer, groupID, isComplete
-	return nil
+	_flags := make([]*Flag, len(flags))
+	for i := 0; i < len(flags); i++ {
+		_flags[i] = &Flag{
+			ID:    challenge.ID + ":" + strconv.Itoa(i),
+			Flag:  flags[i],
+			Score: scores[i],
+		}
+	}
+
+	tx := db.Begin()
+
+	author := &User{}
+	if err := tx.Where(&User{ID: authorID}).First(author).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	challenge.Genre, challenge.Name, challenge.Author, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flags, challenge.Answer = genre, name, author, score, caption, hints, _flags, answer
+	if err := tx.Set("gorm:save_associations", true).Save(challenge).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
-//AddWhoSolved Add the User to the List of Who Solved
-func (challenge *Challenge) AddWhoSolved(user *User) error {
-	delete(scoreCache, user.ID)
-	newWhoSolvedIDs := append(challenge.WhoSolvedIDs, user.ID)
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": newWhoSolvedIDs}}); err != nil {
-		return fmt.Errorf("failed to update the challenge record: %v", err)
+func (challenge *Challenge) calcScore(hints []*Hint, _flags []*Flag) int {
+	_flagNum := -1
+	for i := 0; i < len(_flags); i++ {
+		idSplit := strings.Split(_flags[i].ID, ":")
+		_flagNumTemp, _ := strconv.Atoi(idSplit[1])
+		if _flagNum < _flagNumTemp {
+			_flagNum = _flagNumTemp
+		}
 	}
-	if err := user.setLastSolvedChallengeID(challenge.ChallengeID); err != nil {
-		db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_solved_ids": challenge.WhoSolvedIDs}})
-		return fmt.Errorf("failed to set the user's last solved challenge ID: %v", err)
+
+	score := 0
+	if _flagNum >= 0 {
+		score += challenge.Flags[_flagNum].Score
 	}
-	challenge.WhoSolvedIDs = newWhoSolvedIDs
-	return nil
+	for _, hint := range hints {
+		score -= hint.Penalty
+	}
+	if score < 0 {
+		score = 0
+	}
+	return score
 }
 
-//MoveWhoPointed Move the User to the List of Who Pointed (and Add the User to the List of Who Solved)
-func (challenge *Challenge) MoveWhoPointed(user *User, nowPointed *Challenge) error {
-	delete(scoreCache, user.ID)
-	addedWhoPointedIDs := append(challenge.WhoPointedIDs, user.ID)
-	newWhoSolvedIDs := append(challenge.WhoSolvedIDs, user.ID)
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": addedWhoPointedIDs, "who_solved_ids": newWhoSolvedIDs}}); err != nil {
-		return fmt.Errorf("failed to update the challenge record(add): %v", err)
+//CheckAnswer Check the Answer
+func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, error) {
+	tx := db.Begin()
+
+	hints := make([]*Hint, 0)
+	if err := tx.Where(&Hint{ChallengeID: challenge.ID}).Model(user).Association("OpenedHints").Find(&hints).Error; err != nil {
+		tx.Rollback()
+		return false, 0, err
 	}
-	var deletedWhoPointedIDs []string
-	if nowPointed != nil {
-		for i, id := range nowPointed.WhoPointedIDs {
-			if id == user.ID {
-				deletedWhoPointedIDs = append(nowPointed.WhoPointedIDs[:i], nowPointed.WhoPointedIDs[i+1:]...)
-				break
+	_flags := make([]*Flag, 0)
+	if err := tx.Where(&Flag{ChallengeID: challenge.ID}).Model(user).Association("FoundFlags").Find(&_flags).Error; err != nil {
+		tx.Rollback()
+		return false, 0, err
+	}
+
+	isCorrect := true
+	_flag := &Flag{}
+	err := tx.Where(&Flag{ChallengeID: challenge.ID, Flag: flag}).First(_flag).Error
+	if err == gorm.ErrRecordNotFound {
+		isCorrect = false
+	} else if err != nil {
+		tx.Rollback()
+		return false, 0, err
+	}
+
+	scoreDelta := 0
+	if isCorrect {
+		scoreDelta = challenge.calcScore(hints, append(_flags, _flag)) - challenge.calcScore(hints, _flags)
+	}
+	user.Score += scoreDelta
+
+	if err := tx.Model(challenge).Association("WhoChallenged").Append(user).Error; err != nil {
+		tx.Rollback()
+		return false, 0, err
+	}
+
+	if isCorrect {
+		idSplit := strings.Split(_flag.ID, ":")
+		_flagNum, _ := strconv.Atoi(idSplit[1])
+
+		if err := tx.Model(user).Association("FoundFlags").Append(challenge.Flags[_flagNum]).Error; err != nil {
+			tx.Rollback()
+			return false, 0, err
+		}
+
+		if _flagNum == len(challenge.Flags)-1 {
+			if err := tx.Model(challenge).Association("WhoSolved").Append(user).Error; err != nil {
+				tx.Rollback()
+				return false, 0, err
 			}
 		}
-		if err := db.C("challenge").UpdateId(nowPointed.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": deletedWhoPointedIDs}}); err != nil {
-			db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": challenge.WhoPointedIDs, "who_solved_ids": challenge.WhoSolvedIDs}})
-			return fmt.Errorf("failed to update the challenge record(delete): %v", err)
-		}
-	}
-	if err := user.setLastSolvedChallengeID(challenge.ChallengeID); err != nil {
-		db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": challenge.WhoPointedIDs, "who_solved_ids": challenge.WhoSolvedIDs}})
-		if nowPointed != nil {
-			db.C("challenge").UpdateId(nowPointed.ObjectID, bson.M{"$set": bson.M{"who_pointed_ids": nowPointed.WhoPointedIDs}})
-		}
-		return fmt.Errorf("failed to set the user's last solved challenge ID: %v", err)
+
+		user.LastSolvedChallenge = challenge
+		user.LastSolvedTime = time.Now()
 	}
 
-	if nowPointed != nil {
-		nowPointed.WhoPointedIDs = deletedWhoPointedIDs
+	if err := tx.Save(user).Error; err != nil {
+		tx.Rollback()
+		return false, 0, err
 	}
-	challenge.WhoPointedIDs = addedWhoPointedIDs
-	challenge.WhoSolvedIDs = newWhoSolvedIDs
-	return nil
-}
 
-//AddWhoChallenged Add the User to the List of Who Challenged
-func (challenge *Challenge) AddWhoChallenged(user *User) error {
-	newWhoChallengedIDs := append(challenge.WhoChallengedIDs, user.ID)
-	if err := db.C("challenge").UpdateId(challenge.ObjectID, bson.M{"$set": bson.M{"who_challenged_ids": newWhoChallengedIDs}}); err != nil {
-		return fmt.Errorf("failed to update the challenge record: %v", err)
-	}
-	challenge.WhoChallengedIDs = newWhoChallengedIDs
-	return nil
+	return isCorrect, scoreDelta, tx.Commit().Error
 }
 
 //GetVote Get the User's Vote for the Challenge
 func (challenge *Challenge) GetVote(userID string) (string, error) {
-	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}).Count()
-	if err != nil {
+	_vote := &Vote{}
+	if err := db.Where(&Vote{ChallengeID: challenge.ID, UserID: userID}).First(_vote).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return "", nil
+		}
 		return "", err
 	}
-	if n == 0 {
-		return "", nil
-	}
-	vote := &Vote{}
-	if err := db.C("vote").Find(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}).One(vote); err != nil {
-		return "", err
-	}
-	return vote.VoteStr, nil
+	return _vote.Vote, nil
 }
 
 //PutVote Put the User's Vote for the Challenge
-func (challenge *Challenge) PutVote(userID string, voteStr string) error {
-	n, err := db.C("vote").Find(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}).Count()
-	if err != nil {
-		return err
+func (challenge *Challenge) PutVote(userID string, vote string) error {
+	_vote := &Vote{
+		ChallengeID: challenge.ID,
+		UserID:      userID,
+		Vote:        vote,
 	}
-	if n == 0 {
-		vote := &Vote{
-			ObjectID:    bson.NewObjectId(),
-			ChallengeID: challenge.ChallengeID,
-			UserID:      userID,
-			VoteStr:     voteStr,
-		}
-		if err := db.C("vote").Insert(vote); err != nil {
-			return err
-		}
-		return nil
-	}
-	if err := db.C("vote").Update(bson.M{"challenge_id": challenge.ChallengeID, "user_id": userID}, bson.M{"$set": bson.M{"vote": voteStr}}); err != nil {
-		return err
-	}
-	return nil
+	return db.Create(_vote).Error
 }
