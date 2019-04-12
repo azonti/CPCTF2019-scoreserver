@@ -82,10 +82,6 @@ func GetChallengeByID(id string) (*Challenge, error) {
 //NewChallenge Make a New Challenge Record
 func NewChallenge(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flags []string, scores []int, answer string) (*Challenge, error) {
 	id := uuid.NewV4().String()
-	author, err := GetUserByID(authorID, false)
-	if err != nil {
-		return nil, err
-	}
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
@@ -102,6 +98,15 @@ func NewChallenge(genre string, name string, authorID string, score int, caption
 			Score: scores[i],
 		}
 	}
+
+	tx := db.Begin()
+
+	author := &User{}
+	if err := tx.Where(&User{ID: authorID}).First(author).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	challenge := &Challenge{
 		ID:      id,
 		Genre:   genre,
@@ -113,11 +118,12 @@ func NewChallenge(genre string, name string, authorID string, score int, caption
 		Flags:   _flags,
 		Answer:  answer,
 	}
-	if err := db.Set("gorm:save_associations", true).Create(challenge).Error; err != nil {
+	if err := tx.Set("gorm:save_associations", true).Create(challenge).Error; err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 
-	return challenge, nil
+	return challenge, tx.Commit().Error
 }
 
 //Delete Delete the Challenge Record
@@ -127,10 +133,6 @@ func (challenge *Challenge) Delete() error {
 
 //Update Update the Challenge Record
 func (challenge *Challenge) Update(genre string, name string, authorID string, score int, caption string, captions []string, penalties []int, flags []string, scores []int, answer string) error {
-	author, err := GetUserByID(authorID, false)
-	if err != nil {
-		return err
-	}
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
@@ -147,8 +149,22 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 			Score: scores[i],
 		}
 	}
+
+	tx := db.Begin()
+
+	author := &User{}
+	if err := tx.Where(&User{ID: authorID}).First(author).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	challenge.Genre, challenge.Name, challenge.Author, challenge.Score, challenge.Caption, challenge.Hints, challenge.Flags, challenge.Answer = genre, name, author, score, caption, hints, _flags, answer
-	return db.Set("gorm:save_associations", true).Save(challenge).Error
+	if err := tx.Set("gorm:save_associations", true).Save(challenge).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func (challenge *Challenge) calcScore(hints []*Hint, _flags []*Flag) int {
@@ -235,11 +251,7 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 		return false, 0, err
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return false, 0, err
-	}
-
-	return isCorrect, scoreDelta, nil
+	return isCorrect, scoreDelta, tx.Commit().Error
 }
 
 //GetVote Get the User's Vote for the Challenge
