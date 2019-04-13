@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -101,6 +102,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge, solvedMap, ope
 			Score: _flag.Score,
 		}
 	}
+	sort.SliceStable(flagJSONs, func(i, j int) bool { return flagJSONs[i].Score < flagJSONs[j].Score })
 
 	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolved))
 	for i := 0; i < len(challenge.WhoSolved); i++ {
