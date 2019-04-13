@@ -310,6 +310,7 @@
     "golang.org/x/oauth2",
     "golang.org/x/oauth2/clientcredentials",
     "google.golang.org/grpc",
+    "google.golang.org/grpc/credentials",
     "gopkg.in/resty.v1",
   ]
   solver-name = "gps-cdcl"
