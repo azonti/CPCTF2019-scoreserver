@@ -88,7 +88,7 @@
       :show="openHintWarn"
       @close="openHintWarn = false"
       :callback="openHint"
-      :modal="{ title: 'Are you sure?', body: `This hint's penalty is ${hintToOpen.penalty}.`, showCancel: true, btnBody: 'Sure' }"
+      :modal="{ title: 'Are you sure?', body: `This hint's penalty is ${hintToOpen.penalty}%.`, showCancel: true, btnBody: 'Sure' }"
     />
   </div>
 </template>
