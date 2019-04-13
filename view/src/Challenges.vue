@@ -28,10 +28,10 @@
                   <dd class="col-xs-8 col-a-right chal-score">{{ challenge.score }} <small class="level">({{ "★".repeat(challenge.real_score/100) }})</small></dd>
                   <div v-for="i in challenge.flags.length - 1" v-if="challenge.flags[challenge.flags.length-i-1].flag==='' || !hide">
                     <dt class="col-xs-4 col-a-left"></dt><dd class="col-xs-8 col-a-right chal-score">
-                      <div v-if="challenge.flags[challenge.flags.length-i-1].flag!==''">[</div>
+                      <template v-if="challenge.flags[challenge.flags.length-i-1].flag!==''">[</template>
                       {{ challenge.flags[challenge.flags.length-i-1].score }}
                       <small class="level">({{ "★".repeat(challenge.flags[challenge.flags.length-i-1].real_score/100) }})</small>
-                      <div v-if="challenge.flags[challenge.flags.length-i-1].flag!==''">]</div>
+                      <template v-if="challenge.flags[challenge.flags.length-i-1].flag!==''">]</template>
                     </dd>
                   </div>
                 </dl>
