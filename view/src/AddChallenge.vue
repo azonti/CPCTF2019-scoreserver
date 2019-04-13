@@ -128,6 +128,7 @@ export default {
       var flags = this.flags_text.split(/\r\n|\n/);
       var flags_tmp = []
       for (var i = 0; i < flags.length; i++) {
+        if(flags[i]===""){continue;}
         var flagscore =  parseInt(flags[i].substring(5,8),10)
         if (isNaN(flagscore) || flags[i].substring(0,5) !== "FLAG_"){
           this.$emit('error', 'invalid flags')
