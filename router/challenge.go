@@ -26,6 +26,7 @@ type challengeJSON struct {
 	Flags     []*flagJSON `json:"flags"`
 	Answer    string      `json:"answer"`
 	WhoSolved []*userJSON `json:"who_solved"`
+	Solved    bool        `json:"solved"`
 }
 
 type hintJSON struct {
@@ -39,6 +40,7 @@ type flagJSON struct {
 	Flag      string `json:"flag"`
 	Score     int    `json:"score"`
 	RealScore int    `json:"real_score"`
+	Found     bool   `json:"found"`
 }
 
 func containsUser(slice []*model.User, x *model.User) bool {
@@ -104,6 +106,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge, solvedMap, ope
 			Flag:      map[bool]string{true: _flag.Flag}[canISeeFlag],
 			Score:     _flag.Score * (100 - penaltySum) / 100,
 			RealScore: _flag.Score,
+			Found:     found,
 		}
 	}
 	sort.SliceStable(flagJSONs, func(i, j int) bool { return flagJSONs[i].RealScore < flagJSONs[j].RealScore })
@@ -126,6 +129,7 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge, solvedMap, ope
 		Flags:     flagJSONs,
 		Answer:    map[bool]string{true: challenge.Answer}[canISeeAnswer],
 		WhoSolved: whoSolvedJSONs,
+		Solved:    solved,
 	}
 	return json
 }

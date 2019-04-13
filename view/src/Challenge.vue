@@ -21,7 +21,7 @@
             <dt class="col-xs-4">Found Flags</dt>
             <dd class="col-xs-8">
               <ul class="list-unstyled">
-                <li v-for="flag in challenge.flags"><small v-if="flag.flag!==''">{{ flag.flag }}</small></li>
+                <li v-for="flag in challenge.flags"><small v-if="flag.found">{{ flag.flag }}</small></li>
               </ul>
             </dd>
           </dl>

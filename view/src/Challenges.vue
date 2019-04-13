@@ -26,12 +26,12 @@
                 <dl class="row">
                   <dt class="col-xs-4 col-a-left">Score</dt>
                   <dd class="col-xs-8 col-a-right chal-score">{{ challenge.score }} <small class="level">({{ "★".repeat(challenge.real_score/100) }})</small></dd>
-                  <div v-for="i in challenge.flags.length - 1" v-if="challenge.flags[challenge.flags.length-i-1].flag==='' || !hide">
+                  <div v-for="i in challenge.flags.length - 1" v-if="!challenge.flags[challenge.flags.length-i-1].found || !hide">
                     <dt class="col-xs-4 col-a-left"></dt><dd class="col-xs-8 col-a-right chal-score">
-                      <template v-if="challenge.flags[challenge.flags.length-i-1].flag!==''">[</template>
+                      <template v-if="challenge.flags[challenge.flags.length-i-1].found">[</template>
                       {{ challenge.flags[challenge.flags.length-i-1].score }}
                       <small class="level">({{ "★".repeat(challenge.flags[challenge.flags.length-i-1].real_score/100) }})</small>
-                      <template v-if="challenge.flags[challenge.flags.length-i-1].flag!==''">]</template>
+                      <template v-if="challenge.flags[challenge.flags.length-i-1].found">]</template>
                     </dd>
                   </div>
                 </dl>
