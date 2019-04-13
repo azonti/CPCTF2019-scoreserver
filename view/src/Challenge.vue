@@ -152,6 +152,9 @@ export default {
       })
     },
     fetchVote () {
+      if (!this.me.id) {
+        return;
+      }
       return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}/votes/${this.me.id}`)
       .then(res => res.data).then((data) => {
         this.voted = data
