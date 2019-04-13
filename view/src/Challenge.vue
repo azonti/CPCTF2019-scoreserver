@@ -46,7 +46,7 @@
             <div class="row">
               <div class="col-md-10">
                 <markdown-container v-if="hint.caption" :body="hint.caption" />
-                <p class="well" v-else-if="index == 0 || challenge.hints[index-1].caption">This hint's penalty is <strong>{{ hint.penalty }}</strong>.</p>
+                <p class="well" v-else-if="index == 0 || challenge.hints[index-1].caption">This hint's penalty is <strong>{{ hint.penalty }}</strong>%.</p>
                 <p class="well" v-else>Open hint #{{ index }} first.</p>
               </div>
               <div class="col-md-2">
@@ -144,7 +144,7 @@ export default {
             this.$set(hint, 'caption', '\\*\\*\\*CENCORED*** If you want to see it, remove hide=true from the URL.')
           }
           this.$set(this.challenge, 'answer', '\\*\\*\\*CENCORED*** If you want to see it, remove hide=true from the URL.')
-          this.flag = 'FLAG{ST1LL_L00KING_F0R_ME?}'
+          this.flag = 'FLAG_X00{ST1LL_L00KING_F0R_ME?}'
         }
       })
       .catch((err) => {
