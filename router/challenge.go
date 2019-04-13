@@ -29,15 +29,16 @@ type challengeJSON struct {
 }
 
 type hintJSON struct {
-	ID      string `json:"id"`
-	Caption string `json:"caption"`
-	Penalty int    `json:"penalty"`
+	ID             string `json:"id"`
+	Caption        string `json:"caption"`
+	PenaltyPercent int    `json:"penalty"`
 }
 
 type flagJSON struct {
-	ID    string `json:"id"`
-	Flag  string `json:"flag"`
-	Score int    `json:"score"`
+	ID        string `json:"id"`
+	Flag      string `json:"flag"`
+	Score     int    `json:"score"`
+	RealScore int    `json:"real_score"`
 }
 
 func containsUser(slice []*model.User, x *model.User) bool {
@@ -69,12 +70,14 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge, solvedMap, ope
 	authorJSON := newUserJSON(me, challenge.Author)
 
 	score := challenge.Score
+	penaltySum := 0
 	for _, hint := range challenge.Hints {
 		_, opened := openedMap[hint.ID]
 		if opened {
-			score -= hint.Penalty
+			penaltySum += hint.PenaltyPercent
 		}
 	}
+	score = score * (100 - penaltySum) / 100
 
 	now, finish := time.Now(), model.FinishTime()
 	_, solved := solvedMap[challenge.ID]
@@ -85,9 +88,9 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge, solvedMap, ope
 
 		canISeeHint := !finish.After(now) || opened || solved || me.IsAuthor
 		hintJSONs[i] = &hintJSON{
-			ID:      hint.ID,
-			Caption: map[bool]string{true: hint.Caption}[canISeeHint],
-			Penalty: hint.Penalty,
+			ID:             hint.ID,
+			Caption:        map[bool]string{true: hint.Caption}[canISeeHint],
+			PenaltyPercent: hint.PenaltyPercent,
 		}
 	}
 
@@ -97,12 +100,13 @@ func newChallengeJSON(me *model.User, challenge *model.Challenge, solvedMap, ope
 
 		canISeeFlag := !finish.After(now) || found || solved || me.IsAuthor
 		flagJSONs[i] = &flagJSON{
-			ID:    _flag.ID,
-			Flag:  map[bool]string{true: _flag.Flag}[canISeeFlag],
-			Score: _flag.Score,
+			ID:        _flag.ID,
+			Flag:      map[bool]string{true: _flag.Flag}[canISeeFlag],
+			Score:     _flag.Score * (100 - penaltySum) / 100,
+			RealScore: _flag.Score,
 		}
 	}
-	sort.SliceStable(flagJSONs, func(i, j int) bool { return flagJSONs[i].Score < flagJSONs[j].Score })
+	sort.SliceStable(flagJSONs, func(i, j int) bool { return flagJSONs[i].RealScore < flagJSONs[j].RealScore })
 
 	whoSolvedJSONs := make([]*userJSON, len(challenge.WhoSolved))
 	for i := 0; i < len(challenge.WhoSolved); i++ {
@@ -190,7 +194,7 @@ func PostChallenge(c echo.Context) error {
 		idSplit := strings.Split(_hintJSON.ID, ":")
 		i, _ := strconv.Atoi(idSplit[1])
 		captions[i] = _hintJSON.Caption
-		penalties[i] = _hintJSON.Penalty
+		penalties[i] = _hintJSON.PenaltyPercent
 	}
 	flags, scores := make([]string, len(req.Flags)), make([]int, len(req.Flags))
 	for _, _flagJSON := range req.Flags {
@@ -233,7 +237,7 @@ func PutChallenge(c echo.Context) error {
 		idSplit := strings.Split(_hintJSON.ID, ":")
 		i, _ := strconv.Atoi(idSplit[1])
 		captions[i] = _hintJSON.Caption
-		penalties[i] = _hintJSON.Penalty
+		penalties[i] = _hintJSON.PenaltyPercent
 	}
 	flags, scores := make([]string, len(req.Flags)), make([]int, len(req.Flags))
 	for _, _flagJSON := range req.Flags {

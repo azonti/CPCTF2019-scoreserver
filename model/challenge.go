@@ -42,13 +42,13 @@ type Flag struct {
 
 //Hint a Hint Record
 type Hint struct {
-	ID          string `gorm:"primary_key"`
-	ChallengeID string
-	Caption     string `sql:"type:varchar(3000);"`
-	Penalty     int
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	ID             string `gorm:"primary_key"`
+	ChallengeID    string
+	Caption        string `sql:"type:varchar(3000);"`
+	PenaltyPercent int
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time
 }
 
 //Vote a Vote Record
@@ -86,9 +86,9 @@ func NewChallenge(genre string, name string, authorID string, score int, caption
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
-			ID:      id + ":" + strconv.Itoa(i),
-			Caption: captions[i],
-			Penalty: penalties[i],
+			ID:             id + ":" + strconv.Itoa(i),
+			Caption:        captions[i],
+			PenaltyPercent: penalties[i],
 		}
 	}
 	_flags := make([]*Flag, len(flags))
@@ -137,9 +137,9 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 	hints := make([]*Hint, len(captions))
 	for i := 0; i < len(captions); i++ {
 		hints[i] = &Hint{
-			ID:      challenge.ID + ":" + strconv.Itoa(i),
-			Caption: captions[i],
-			Penalty: penalties[i],
+			ID:             challenge.ID + ":" + strconv.Itoa(i),
+			Caption:        captions[i],
+			PenaltyPercent: penalties[i],
 		}
 	}
 	_flags := make([]*Flag, len(flags))
@@ -166,29 +166,6 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 	}
 
 	return tx.Commit().Error
-}
-
-func (challenge *Challenge) calcScore(hints []*Hint, _flags []*Flag) int {
-	_flagNum := -1
-	for i := 0; i < len(_flags); i++ {
-		idSplit := strings.Split(_flags[i].ID, ":")
-		_flagNumTemp, _ := strconv.Atoi(idSplit[1])
-		if _flagNum < _flagNumTemp {
-			_flagNum = _flagNumTemp
-		}
-	}
-
-	score := 0
-	if _flagNum >= 0 {
-		score += challenge.Flags[_flagNum].Score
-	}
-	for _, hint := range hints {
-		score -= hint.Penalty
-	}
-	if score < 0 {
-		score = 0
-	}
-	return score
 }
 
 //CheckAnswer Check the Answer
@@ -218,7 +195,23 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 
 	scoreDelta := 0
 	if isCorrect {
-		scoreDelta = challenge.calcScore(hints, append(_flags, _flag)) - challenge.calcScore(hints, _flags)
+
+		penaltySum := 0
+		for _, hint := range hints {
+			penaltySum += hint.PenaltyPercent
+		}
+		_flag.Score = _flag.Score * (100 - penaltySum) / 100
+
+		nowScore := 0
+		for _, f := range _flags {
+			if nowScore < f.Score {
+				nowScore = f.Score
+			}
+		}
+
+		if nowScore < _flag.Score {
+			scoreDelta = _flag.Score - nowScore
+		}
 	}
 	user.Score += scoreDelta
 
@@ -231,7 +224,7 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 		idSplit := strings.Split(_flag.ID, ":")
 		_flagNum, _ := strconv.Atoi(idSplit[1])
 
-		if err := tx.Model(user).Association("FoundFlags").Append(challenge.Flags[_flagNum]).Error; err != nil {
+		if err := tx.Model(user).Association("FoundFlags").Append(_flag).Error; err != nil {
 			tx.Rollback()
 			return false, 0, err
 		}

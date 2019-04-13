@@ -18,6 +18,14 @@
             <dd class="col-xs-8 chal-score">{{ challenge.score }}</dd>
           </dl>
           <dl class="row">
+            <dt class="col-xs-4">Found Flags</dt>
+            <dd class="col-xs-8">
+              <ul class="list-unstyled">
+                <li v-for="flag in challenge.flags"><small v-if="flag!==''">{{ flag }}</small></li>
+              </ul>
+            </dd>
+          </dl>
+          <dl class="row">
             <dt class="col-xs-4">Solved By</dt>
             <dd class="col-xs-8">
               <ul class="list-unstyled">

@@ -165,7 +165,6 @@ func (user *User) OpenHint(id string) error {
 		return err
 	}
 
-	user.Score += challenge.calcScore(append(hints, hint), _flags) - challenge.calcScore(hints, _flags)
 	user.OpenedHints = append(user.OpenedHints, hint)
 
 	if err := tx.Save(user).Error; err != nil {

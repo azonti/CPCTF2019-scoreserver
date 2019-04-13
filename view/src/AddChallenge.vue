@@ -122,7 +122,7 @@ export default {
         hints_tmp[i] = {
           id:this.name+":"+i.toString(),
           caption:this.hints[i],
-          penalty:score * penalty_percent[i] / 100
+          penalty: penalty_percent[i]
         }
       }
       var flags = this.flags_text.split(/\r\n|\n/);
