@@ -132,6 +132,7 @@ export default {
         var flagscore =  parseInt(flags[i].substring(5,8),10)
         if (isNaN(flagscore) || flags[i].substring(0,5) !== "FLAG_"){
           this.$emit('error', 'invalid flags')
+          this.sendingCode = false
           return;
         }
         flags_tmp[i] = {
