@@ -129,8 +129,8 @@ export default {
         this.genre = this.challenge.genre
         this.score = this.challenge.real_score
         this.flags_text = ""
-        for (const f in this.challenge.flags) {
-          this.flags_text += f.flag
+        for (var i = 0; i < this.challenge.flags.length; i++) {
+          this.flags_text += this.challenge.flags[i].flag
           this.flags_text += "\n"
         }
         this.caption = this.challenge.caption
