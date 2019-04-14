@@ -11,6 +11,7 @@ import Ranking from './Ranking.vue'
 import User from './User.vue'
 import Questions from './Questions.vue'
 import AddChallenge from './AddChallenge.vue'
+import UpdateChallenge from './UpdateChallenge.vue'
 
 import Modal from './Modal.vue'
 import EzModals from './EzModals.vue'
@@ -66,6 +67,12 @@ const router = new Router({
       path: '/add_challenge-e29375e2-046e-4bb6-b953-e65ea498824a',
       name: 'add_challenge',
       component: AddChallenge
+    },
+    {
+      path: '/challenges/:id/update_challenge',
+      name: 'update_challenge',
+      props: true,
+      component: UpdateChallenge
     },
   ],
   linkActiveClass: 'active'

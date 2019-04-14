@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="me.is_author">
+    <div v-if="me.is_author && this.challenge.author.id === me.id">
       <vue-headful :title="`${me.name} | CPCTF2019`" />
       <h1>{{ me.name }}</h1>
       <div class="row">
@@ -67,7 +67,7 @@
           </div>
           <div class="row">
             <div class="col-md-2">
-              <button v-if="!sendingCode" @click="postChallenge" class="btn btn-primary" style="width: 100%;">Post</button>
+              <button v-if="!sendingCode" @click="postChallenge" class="btn btn-primary" style="width: 100%;">Update</button>
             </div>
           </div>
         </div>
@@ -94,10 +94,12 @@ const api = axios.create({
 
 export default {
   props: [
+    'id',
     'me'
   ],
   data () {
     return {
+      challenge: {},
       name:       '',
       genre:      '',
       score:      '',
@@ -110,8 +112,35 @@ export default {
   created () {
   },
   watch: {
+    id (val) {
+      this.fetchChallenge()
+    },
   },
   methods: {
+    fetchChallenge () {
+      return api.get(`${process.env.API_URL_PREFIX}/challenges/${this.id}`)
+      .then(res => res.data).then((data) => {
+        for (const key in data) {
+          this.$set(this.challenge, key, data[key])
+        }
+        this.name = this.challenge.name
+        this.genre = this.challenge.genre
+        this.score = this.challenge.real_score
+        this.flags_text = ""
+        for (const f in this.challenge.flags) {
+          this.flags_text += f.flag
+          this.flags_text += "\n"
+        }
+        this.caption = this.challenge.caption
+        for (var i = 0; i < this.challenge.hints.length; i++) {
+          this.hints[i] = this.challenge.hints[i].caption
+        }
+        this.sendingCode = false
+      })
+      .catch((err) => {
+        this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
+      })
+    },
     postChallenge () {
       this.sendingCode = true
       var hints_tmp = []
@@ -142,7 +171,7 @@ export default {
       }
 
       console.log("run api.post")
-      return api.post(`${process.env.API_URL_PREFIX}/challenges`, { 
+      return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, { 
           name:       this.name,
           author:     {id: this.me.id},
           genre:      this.genre,
