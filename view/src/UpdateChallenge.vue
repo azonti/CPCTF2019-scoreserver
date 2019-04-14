@@ -184,7 +184,7 @@ export default {
           answer:     this.flag
        })
       .then(() => {
-        this.$emit('success', 'New challenge added.')
+        this.$emit('success', 'challenge updated.')
       })
       .catch((err) => {
         this.$emit('error', err.response ? `Message: ${err.response.data.message}` : err)
