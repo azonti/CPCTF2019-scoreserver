@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="me.is_author && this.challenge.author.id === me.id">
+    <div v-if="me.is_author">
       <vue-headful :title="`${me.name} | CPCTF2019`" />
       <h1>{{ me.name }}</h1>
       <div class="row">
@@ -15,6 +15,7 @@
             <dd class="col-xs-8"><a v-if="me.twitter_screen_name" :href="`https://twitter.com/${me.twitter_screen_name}`">@{{ me.twitter_screen_name }}</a></dd>
           </dl>
         </div>
+        <h1 v-if="this.challenge.author.id !== me.id!">YOU ARE NOT AUTHOR!!!!</h1>
         <div class="col-md-8">
           <h2 style="margin-top: 0;">Post challenge</h2>
           <div class="row">
@@ -174,7 +175,7 @@ export default {
       console.log("run api.post")
       return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, { 
           name:       this.name,
-          author:     {id: this.me.id},
+          author:     {id: challenge.author.id},
           genre:      this.genre,
           score:      score,
           flags:       flags_tmp,
