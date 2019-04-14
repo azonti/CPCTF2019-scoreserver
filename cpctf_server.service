@@ -8,6 +8,7 @@ Type=simple
 Restart = always
 WorkingDirectory=/go/src/git.trapti.tech/CPCTF2019/scoreserver
 ExecStart=/go/src/git.trapti.tech/CPCTF2019/scoreserver/scoreserver
+EnvironmentFile=/etc/profile.d/scoreserver_env.sh
 TimeoutStopSec=180
 
 [Install]
