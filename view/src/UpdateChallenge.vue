@@ -15,7 +15,7 @@
             <dd class="col-xs-8"><a v-if="me.twitter_screen_name" :href="`https://twitter.com/${me.twitter_screen_name}`">@{{ me.twitter_screen_name }}</a></dd>
           </dl>
         </div>
-        <h1 v-if="this.challenge.author.id !== me.id!">YOU ARE NOT AUTHOR!!!!</h1>
+        <h1 v-if="this.challenge.author.id !== me.id">YOU ARE NOT AUTHOR!!!!</h1>
         <div class="col-md-8">
           <h2 style="margin-top: 0;">Post challenge</h2>
           <div class="row">
