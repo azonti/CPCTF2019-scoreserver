@@ -144,7 +144,6 @@ export default {
       })
     },
     postChallenge () {
-      this.sendingCode = true
       var hints_tmp = []
       var penalty_percent = [10,30-10,99-30]
       var score = parseInt(this.score,10)
@@ -172,10 +171,11 @@ export default {
         }
       }
 
+      this.sendingCode = true
       console.log("run api.post")
       return api.put(`${process.env.API_URL_PREFIX}/challenges/${this.id}`, { 
           name:       this.name,
-          author:     {id: challenge.author.id},
+          author:     {id: this.challenge.author.id},
           genre:      this.genre,
           score:      score,
           flags:       flags_tmp,
