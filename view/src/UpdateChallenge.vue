@@ -110,6 +110,7 @@ export default {
     }
   },
   created () {
+      this.fetchChallenge()
   },
   watch: {
     id (val) {
