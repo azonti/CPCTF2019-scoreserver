@@ -43,9 +43,9 @@ type User struct {
 
 //FoundFlag a FoundFlag Record
 type FoundFlag struct {
-	ID          string `gorm:"primary_key"`
+	ID          int `gorm:"primary_key"`
+	FlagID      string
 	ChallengeID string
-	Flag        string
 	Score       int
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

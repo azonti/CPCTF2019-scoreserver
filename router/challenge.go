@@ -63,7 +63,7 @@ func makeSolvedOpenedFoundMaps(me *model.User) (map[string]struct{}, map[string]
 	}
 	foundMap := make(map[string]struct{}, 0)
 	for _, _flag := range me.FoundFlags {
-		foundMap[_flag.ID] = struct{}{}
+		foundMap[_flag.FlagID] = struct{}{}
 	}
 	return solvedMap, openedMap, foundMap
 }

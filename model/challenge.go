@@ -225,9 +225,8 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 	}
 
 	newFlag := &FoundFlag{
-		ID:          user.ID + _flag.ID,
+		FlagID:      _flag.ID,
 		ChallengeID: _flag.ChallengeID,
-		Flag:        _flag.Flag,
 		Score:       score,
 	}
 	if isCorrect {
