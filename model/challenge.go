@@ -170,6 +170,7 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 
 //CheckAnswer Check the Answer
 func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, error) {
+
 	tx := db.Begin()
 
 	hints := make([]*Hint, 0)
@@ -191,6 +192,9 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 	} else if err != nil {
 		tx.Rollback()
 		return false, 0, err
+	}
+	if len(flag) < 5 {
+		isCorrect = false
 	}
 
 	scoreDelta := 0
