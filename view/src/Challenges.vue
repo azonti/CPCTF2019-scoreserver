@@ -27,10 +27,7 @@
                   <dt class="col-xs-4 col-a-left">Score</dt>
                   <div v-for="i in challenge.flags.length" v-if="!challenge.flags[challenge.flags.length-i].found || !hide">
                     <dt class="col-xs-4 col-a-left"></dt><dd class="col-xs-8 col-a-right chal-score">
-                      <template v-if="challenge.flags[challenge.flags.length-i].found">[</template>
-                      {{ challenge.flags[challenge.flags.length-i].score }}
-                      <small class="level">({{ "★".repeat(challenge.flags[challenge.flags.length-i].real_score/100) }})</small>
-                      <template v-if="challenge.flags[challenge.flags.length-i].found">]</template>
+                      <template v-if="challenge.flags[challenge.flags.length-i].found">[</template>{{ challenge.flags[challenge.flags.length-i].score }}<small class="level">({{ "★".repeat(challenge.flags[challenge.flags.length-i].real_score/100)}})</small><template v-if="challenge.flags[challenge.flags.length-i].found">]</template>
                     </dd>
                   </div>
                 </dl>
