@@ -11,8 +11,8 @@
           <router-link tag="li" v-if="me.id" :to="{name: 'user', params: {id: me.id}}"><a><img :src="me.icon_url" class="icon big">{{ me.name }}<small v-if="me.twitter_screen_name">(@{{ me.twitter_screen_name }})</small></a></router-link>
           <li v-else><a @click.prevent="showDropdown = false" href="#"><img :src="me.icon_url" class="icon big">{{ me.name }}</a></li>
           <li class="divider" v-if="me.web_shell_pass"></li>
-          <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.space/`">Open webshell</a></li>
-          <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.space/_/`">Open file browser</a></li>
+          <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.space/login/?target=shell`">Open webshell</a></li>
+          <li v-if="me.web_shell_pass"><a target="_blank" :href="`https://${me.id}:${me.web_shell_pass}@client.cpctf.space/login/?target=files`">Open file browser</a></li>
           <li class="divider"></li>
           <li :class="{disabled: me.id}"><a @click="showDropdown = false" :href="!me.id && twitterLoginURL">Login with Twitter</a></li>
           <li :class="{disabled: !me.id}"><a @click="showDropdown = false" :href="me.id && logoutURL">Logout</a></li>
