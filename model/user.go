@@ -28,7 +28,7 @@ type User struct {
 	Score                 int
 	SolvedChallenges      []*Challenge `gorm:"many2many:user_solved_challenges;"`
 	OpenedHints           []*Hint      `gorm:"many2many:user_opened_hints;"`
-	FoundFlags            []*Flag      `gorm:"many2many:user_found_flags;"`
+	FoundFlags            []*FoundFlag `gorm:"many2many:user_found_flags;"`
 	WebShellPass          string
 	LastSeenChallengeID   string
 	LastSeenChallenge     *Challenge `gorm:"foreignkey:LastSeenChallengeID"`
@@ -39,6 +39,17 @@ type User struct {
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 	DeletedAt             *time.Time
+}
+
+//FoundFlag a FoundFlag Record
+type FoundFlag struct {
+	ID          string `gorm:"primary_key"`
+	ChallengeID string
+	Flag        string
+	Score       int
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 }
 
 //Nobody a User Record which does Not Exist Actually
@@ -136,18 +147,6 @@ func (user *User) OpenHint(id string) error {
 	idSplit := strings.Split(id, ":")
 
 	tx := db.Begin()
-
-	hints := make([]*Hint, 0)
-	if err := tx.Where(&Hint{ChallengeID: idSplit[0]}).Model(user).Association("OpenedHints").Find(&hints).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	_flags := make([]*Flag, 0)
-	if err := tx.Where(&Flag{ChallengeID: idSplit[0]}).Model(user).Association("FoundFlags").Find(&_flags).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	hint := &Hint{}
 	if err := tx.Where(&Hint{ID: id}).First(hint).Error; err != nil {
 		tx.Rollback()

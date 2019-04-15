@@ -16,7 +16,7 @@ func InitDB() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Challenge{}, &Hint{}, &Flag{}, &Vote{}, &Question{}, &User{}).Error; err != nil {
+	if err := db.AutoMigrate(&Challenge{}, &Hint{}, &Flag{}, &Vote{}, &Question{}, &User{}, &FoundFlag{}).Error; err != nil {
 		return err
 	}
 	db = db.Set("gorm:save_associations", false)

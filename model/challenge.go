@@ -2,7 +2,6 @@ package model
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -178,8 +177,8 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 		tx.Rollback()
 		return false, 0, err
 	}
-	_flags := make([]*Flag, 0)
-	if err := tx.Where(&Flag{ChallengeID: challenge.ID}).Model(user).Association("FoundFlags").Find(&_flags).Error; err != nil {
+	_flags := make([]*FoundFlag, 0)
+	if err := tx.Where(&FoundFlag{ChallengeID: challenge.ID}).Model(user).Association("FoundFlags").Find(&_flags).Error; err != nil {
 		tx.Rollback()
 		return false, 0, err
 	}
@@ -197,6 +196,7 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 		isCorrect = false
 	}
 
+	score := 0
 	scoreDelta := 0
 	if isCorrect {
 
@@ -204,7 +204,7 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 		for _, hint := range hints {
 			penaltySum += hint.PenaltyPercent
 		}
-		_flag.Score = _flag.Score * (100 - penaltySum) / 100
+		score = _flag.Score * (100 - penaltySum) / 100
 
 		nowScore := 0
 		for _, f := range _flags {
@@ -213,8 +213,8 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 			}
 		}
 
-		if nowScore < _flag.Score {
-			scoreDelta = _flag.Score - nowScore
+		if nowScore < score {
+			scoreDelta = score - nowScore
 		}
 	}
 	user.Score += scoreDelta
@@ -224,16 +224,23 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 		return false, 0, err
 	}
 
+	newFlag := &FoundFlag{
+		ID:          user.ID + _flag.ID,
+		ChallengeID: _flag.ChallengeID,
+		Flag:        _flag.Flag,
+		Score:       score,
+	}
 	if isCorrect {
-		idSplit := strings.Split(_flag.ID, ":")
-		_flagNum, _ := strconv.Atoi(idSplit[1])
-
-		if err := tx.Model(user).Association("FoundFlags").Append(_flag).Error; err != nil {
+		if err := db.Create(newFlag).Error; err != nil {
+			return false, 0, err
+		}
+		if err := tx.Model(user).Association("FoundFlags").Append(newFlag).Error; err != nil {
 			tx.Rollback()
 			return false, 0, err
 		}
+		user.FoundFlags = append(user.FoundFlags, newFlag)
 
-		if _flagNum == len(challenge.Flags)-1 {
+		if _flag.Score == challenge.Score {
 			if err := tx.Model(challenge).Association("WhoSolved").Append(user).Error; err != nil {
 				tx.Rollback()
 				return false, 0, err
