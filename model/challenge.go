@@ -65,7 +65,7 @@ var ErrChallengeNotFound = gorm.ErrRecordNotFound
 //GetChallenges Get All Challenge Records
 func GetChallenges() ([]*Challenge, error) {
 	challenges := make([]*Challenge, 0)
-	if err := db.Preload("Author").Preload("Hints").Preload("Flags").Preload("WhoSolved").Preload("WhoChallenged").Preload("Votes").Find(&challenges).Error; err != nil {
+	if err := db.Preload("Author").Preload("Hints").Preload("Flags").Preload("WhoSolved").Preload("WhoChallenged").Preload("Votes").Order("genre").Order("name").Find(&challenges).Error; err != nil {
 		return nil, err
 	}
 	return challenges, nil
