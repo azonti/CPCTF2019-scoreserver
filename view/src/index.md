@@ -59,8 +59,12 @@
 ### 観戦
 
 競技に参加しなくても、ページ上部の`Ranking`から順位表を観戦することができます。
-また、競技の様子を可視化したビジュアライザも用意しています。
-![screenshot_visualizer](http://files.problem.cpctf.space/visualizerScreenshot.png)
+また、こちらのリンクからは競技の様子を可視化したビジュアライザを見ることができます。
+
+http://visualizer2019.problem.cpctf.space/
+
+<img src="http://files.problem.cpctf.space/visualizerScreenshot.png" alt="screenshot" width="50%">
+
 
 -----
 
