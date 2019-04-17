@@ -1,9 +1,10 @@
 package model
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
-	"time"
 )
 
 //Question a Question Record
@@ -27,7 +28,7 @@ var ErrQuestionNotFound = gorm.ErrRecordNotFound
 //GetQuestions Get All Question Records
 func GetQuestions() ([]*Question, error) {
 	questions := make([]*Question, 0)
-	if err := db.Preload("Questioner").Preload("Answerer").Find(&questions).Error; err != nil {
+	if err := db.Preload("Questioner").Preload("Answerer").Order("updated_at desc").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
