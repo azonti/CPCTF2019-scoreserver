@@ -170,6 +170,7 @@ func (challenge *Challenge) Update(genre string, name string, authorID string, s
 //CheckAnswer Check the Answer
 func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, error) {
 
+	now, finish := time.Now(), FinishTime()
 	tx := db.Begin()
 
 	hints := make([]*Hint, 0)
@@ -217,42 +218,44 @@ func (challenge *Challenge) CheckAnswer(user *User, flag string) (bool, int, err
 			scoreDelta = score - nowScore
 		}
 	}
-	user.Score += scoreDelta
+	if finish.After(now) {
+		user.Score += scoreDelta
 
-	if err := tx.Model(challenge).Association("WhoChallenged").Append(user).Error; err != nil {
-		tx.Rollback()
-		return false, 0, err
-	}
-
-	newFlag := &FoundFlag{
-		FlagID:      _flag.ID,
-		ChallengeID: _flag.ChallengeID,
-		Score:       score,
-	}
-	if isCorrect {
-		if err := db.Create(newFlag).Error; err != nil {
-			return false, 0, err
-		}
-		if err := tx.Model(user).Association("FoundFlags").Append(newFlag).Error; err != nil {
+		if err := tx.Model(challenge).Association("WhoChallenged").Append(user).Error; err != nil {
 			tx.Rollback()
 			return false, 0, err
 		}
-		user.FoundFlags = append(user.FoundFlags, newFlag)
 
-		if _flag.Score == challenge.Score {
-			if err := tx.Model(challenge).Association("WhoSolved").Append(user).Error; err != nil {
+		newFlag := &FoundFlag{
+			FlagID:      _flag.ID,
+			ChallengeID: _flag.ChallengeID,
+			Score:       score,
+		}
+		if isCorrect {
+			if err := db.Create(newFlag).Error; err != nil {
+				return false, 0, err
+			}
+			if err := tx.Model(user).Association("FoundFlags").Append(newFlag).Error; err != nil {
 				tx.Rollback()
 				return false, 0, err
 			}
+			user.FoundFlags = append(user.FoundFlags, newFlag)
+
+			if _flag.Score == challenge.Score {
+				if err := tx.Model(challenge).Association("WhoSolved").Append(user).Error; err != nil {
+					tx.Rollback()
+					return false, 0, err
+				}
+			}
+
+			user.LastSolvedChallenge = challenge
+			user.LastSolvedTime = time.Now()
 		}
 
-		user.LastSolvedChallenge = challenge
-		user.LastSolvedTime = time.Now()
-	}
-
-	if err := tx.Save(user).Error; err != nil {
-		tx.Rollback()
-		return false, 0, err
+		if err := tx.Save(user).Error; err != nil {
+			tx.Rollback()
+			return false, 0, err
+		}
 	}
 
 	return isCorrect, scoreDelta, tx.Commit().Error
