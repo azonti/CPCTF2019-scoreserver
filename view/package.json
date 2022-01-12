@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
-    "markdown-it": "^8.4.1",
+    "markdown-it": "^12.3.2",
     "markdown-it-katex": "^2.0.3",
     "vue": "^2.5.11",
     "vue-headful": "^2.0.1",
